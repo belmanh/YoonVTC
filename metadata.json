@@ -1,0 +1,6 @@
+{
+  "name": "Yoon VTC Sénégal - Plateforme Ride-Hailing",
+  "description": "Plateforme complète VTC / Ride-Hailing pour le Sénégal (Dakar, Thiès, Mbour, AIBD) avec intégration Wave, Orange Money, Cash, applications Passager & Chauffeur, Dispatch GPS en temps réel et Panneau d'Administration.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
