@@ -153,3 +153,19 @@ export interface PayoutTransaction {
   timestamp: string;
   reference: string;
 }
+
+export const MIN_DRIVER_WALLET_THRESHOLD = 1000; // 1 000 FCFA solde minimum pour passer en ligne (Modèle Yango)
+
+export interface DriverWalletTransaction {
+  id: string;
+  driverId: string;
+  amount: number; // FCFA (négatif pour commission, positif pour recharge/dépôt)
+  type: 'commission' | 'deposit' | 'withdrawal' | 'bonus' | 'adjustment';
+  provider: 'wave' | 'orange_money' | 'cash' | 'system';
+  description: string;
+  reference?: string;
+  rideId?: string;
+  createdAt: string;
+  status: 'success' | 'pending' | 'failed';
+  balanceAfter: number; // Solde résultant en FCFA
+}

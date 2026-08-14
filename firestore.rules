@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Verrouillage par défaut (Zero-Trust)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Fonctions de validation et d'aide
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 2. Collection des Utilisateurs (Passagers & Chauffeurs)
+    match /users/{userId} {
+      // Lecture autorisée pour tout utilisateur connecté (pour voir infos chauffeur / passager)
+      allow read: if isSignedIn();
+      
+      // Création et mise à jour strictement limitées au titulaire du compte
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false; // Suppression via Cloud Function d'archivage
+    }
+
+    // 3. Collection des Courses (Rides)
+    match /rides/{rideId} {
+      // Lecture : Passager de la course, chauffeur assigné, ou toute demande en attente ('requested') pour les chauffeurs
+      allow read: if isSignedIn() && (
+        resource.data.passengerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        resource.data.status == 'requested'
+      );
+
+      // Création : Seul le passager connecté peut initier sa course
+      allow create: if isSignedIn() && 
+                    request.resource.data.passengerId == request.auth.uid &&
+                    request.resource.data.status == 'requested';
+
+      // Mise à jour : 
+      // - Le passager peut annuler sa course
+      // - Un chauffeur peut accepter une course 'requested' (s'assigner)
+      // - Le chauffeur assigné peut changer le statut ('arrived', 'in_progress', 'completed')
+      allow update: if isSignedIn() && (
+        // Cas 1: Passager modifie sa course
+        resource.data.passengerId == request.auth.uid ||
+        // Cas 2: Chauffeur déjà assigné
+        resource.data.driverId == request.auth.uid ||
+        // Cas 3: Chauffeur accepte une course libre
+        (resource.data.status == 'requested' && request.resource.data.driverId == request.auth.uid)
+      );
+
+      allow delete: if false;
+    }
+
+    // 4. Collection des Transactions (Portefeuille / Payouts)
+    match /transactions/{transactionId} {
+      // Seul l'utilisateur propriétaire peut consulter ses propres transactions
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Création de transaction liée au compte de l'utilisateur
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Les écritures financières sont immuables
+    }
+  }
+}

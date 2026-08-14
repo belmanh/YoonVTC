@@ -544,10 +544,10 @@ router.post('/webhooks/wave', express.raw({ type: 'application/json' }), async (
     const rideId = session.client_reference;
     const amountXOF = parseInt(session.amount);
 
-    console.log(\`[WAVE SÉNÉGAL] Paiement reçu pour la course \${rideId}: \${amountXOF} FCFA\`);
+    console.log(\`[WAVE SÉNÉGAL] Recharge crédit chauffeur ou paiement direct reçu pour la course \${rideId}: \${amountXOF} FCFA\`);
 
-    // Crédit automatique du Wallet Chauffeur (85%) & clôture
-    await creditDriverWalletAndCloseRide(rideId, amountXOF, 'wave');
+    // Modèle Yango : Recharge crédit prépayé chauffeur ou déduction automatique
+    await processYangoDriverWalletTransaction(rideId, amountXOF, 'wave');
   }
 
   res.status(200).json({ received: true });
@@ -560,20 +560,21 @@ router.post('/webhooks/orange-money', express.json(), async (req, res) => {
   const { status, notif_token, txnid, order_id, amount } = req.body;
 
   if (status === 'SUCCESS') {
-    console.log(\`[ORANGE MONEY] Transaction réussie \${txnid} pour commande \${order_id}\`);
-    await creditDriverWalletAndCloseRide(order_id, amount, 'orange_money');
+    console.log(\`[ORANGE MONEY] Transaction réussie \${txnid} pour recharge/course \${order_id}\`);
+    await processYangoDriverWalletTransaction(order_id, amount, 'orange_money');
     return res.status(200).json({ status: 'ACKNOWLEDGED' });
   }
 
   res.status(400).json({ error: 'Transaction non aboutie' });
 });
 
-async function creditDriverWalletAndCloseRide(rideId: string, totalAmountFcfa: number, method: string) {
-  const commission = Math.round(totalAmountFcfa * 0.15);
-  const driverNet = totalAmountFcfa - commission;
-  
-  // Exécution transaction SQL / Firestore
-  console.log(\`Wallet Chauffeur crédité de \${driverNet} FCFA (Commission Yoon: \${commission} FCFA)\`);
+/**
+ * Traitement Modèle Yango :
+ * 1. Recharge crédit chauffeur (Top-Up) via Wave/OM
+ * 2. Prélèvement automatique commission 15% à chaque fin de course
+ */
+async function processYangoDriverWalletTransaction(referenceId: string, amountFcfa: number, method: string) {
+  console.log(\`[MODÈLE YANGO] Transaction \${referenceId} traitée (\${amountFcfa} FCFA via \${method})\`);
 }
 
 export default router;`;

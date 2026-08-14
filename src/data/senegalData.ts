@@ -1,4 +1,4 @@
-import { GeoLocation, Driver, PricingRule, ZoneConfig, Passenger } from '../types/vtc';
+import { GeoLocation, Driver, PricingRule, ZoneConfig, Passenger, DriverWalletTransaction } from '../types/vtc';
 
 // Points d'intérêt et quartiers majeurs du Sénégal (Dakar & Régions)
 export const SENEGAL_LOCATIONS: GeoLocation[] = [
@@ -425,5 +425,58 @@ export const SENEGAL_ZONES: ZoneConfig[] = [
     surgeFactor: 1.15,
     tollRequired: true,
     tollAmount: 3500,
+  },
+];
+
+export const INITIAL_WALLET_TRANSACTIONS: DriverWalletTransaction[] = [
+  {
+    id: 'txn_sn_01',
+    driverId: 'drv_sn_101',
+    amount: 25000,
+    type: 'deposit',
+    provider: 'wave',
+    description: 'Recharge crédit chauffeur (Wave Sénégal 0% frais)',
+    reference: 'WAVE_SN_TOPUP_84712',
+    createdAt: '2026-08-14T11:45:00Z',
+    status: 'success',
+    balanceAfter: 84500,
+  },
+  {
+    id: 'txn_sn_02',
+    driverId: 'drv_sn_101',
+    amount: -450,
+    type: 'commission',
+    provider: 'cash',
+    description: 'Commission course #SN-4821 (15% sur 3 000 FCFA direct)',
+    rideId: 'SN-4821',
+    reference: 'COMM_SN_4821',
+    createdAt: '2026-08-14T11:15:00Z',
+    status: 'success',
+    balanceAfter: 59500,
+  },
+  {
+    id: 'txn_sn_03',
+    driverId: 'drv_sn_101',
+    amount: -675,
+    type: 'commission',
+    provider: 'wave',
+    description: 'Commission course #SN-3902 (15% sur 4 500 FCFA direct)',
+    rideId: 'SN-3902',
+    reference: 'COMM_SN_3902',
+    createdAt: '2026-08-14T09:30:00Z',
+    status: 'success',
+    balanceAfter: 59950,
+  },
+  {
+    id: 'txn_sn_04',
+    driverId: 'drv_sn_101',
+    amount: 50000,
+    type: 'deposit',
+    provider: 'orange_money',
+    description: 'Recharge crédit chauffeur (Orange Money #144#)',
+    reference: 'OM_SN_TOPUP_19283',
+    createdAt: '2026-08-13T18:00:00Z',
+    status: 'success',
+    balanceAfter: 60625,
   },
 ];

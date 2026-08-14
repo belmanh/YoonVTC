@@ -12,6 +12,9 @@ import {
   MapPin,
   Flame,
   Shield,
+  UserCheck,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import {
   Driver,
@@ -22,6 +25,8 @@ import {
   PricingRule,
   ZoneConfig,
   PayoutTransaction,
+  DriverWalletTransaction,
+  MIN_DRIVER_WALLET_THRESHOLD,
   DocumentStatus,
   GeoLocation,
 } from './types/vtc';
@@ -31,17 +36,25 @@ import {
   PRICING_RULES,
   SENEGAL_ZONES,
   SENEGAL_LOCATIONS,
+  INITIAL_WALLET_TRANSACTIONS,
 } from './data/senegalData';
 import { calculateRidePrice, generateRoutePoints } from './services/pricingEngine';
+import { deductDriverCommission, rechargeDriverWallet } from './services/dbService';
 import { PassengerApp } from './components/Passenger/PassengerApp';
 import { DriverApp } from './components/Driver/DriverApp';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { TechnicalSpecView } from './components/Architecture/TechnicalSpecView';
 import { DispatchSimulatorControls } from './components/Simulator/DispatchSimulatorControls';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { PhoneAuthModal } from './components/Auth/PhoneAuthModal';
 
-export default function App() {
+function YoonVtcApp() {
+  const { currentUser, userProfile, logout, isConfigured } = useAuth();
+
   // Navigation principale de la suite Yoon VTC
   const [activeView, setActiveView] = useState<'split' | 'passenger' | 'driver' | 'admin' | 'architecture'>('split');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authDefaultRole, setAuthDefaultRole] = useState<'passenger' | 'driver'>('passenger');
   
   // Données d'état
   const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
@@ -75,14 +88,69 @@ export default function App() {
     },
   ]);
 
+  // Historique des transactions du portefeuille de crédit chauffeur (Commissions & Recharges)
+  const [walletTransactions, setWalletTransactions] = useState<DriverWalletTransaction[]>(INITIAL_WALLET_TRANSACTIONS);
+
   // Course en direct
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
   const [isSimulatingMovement, setIsSimulatingMovement] = useState<boolean>(false);
   const [isRushHour, setIsRushHour] = useState<boolean>(false);
   const [assignedDriverLocation, setAssignedDriverLocation] = useState<{ lat: number; lng: number; heading: number } | null>(null);
 
+  // Synchronisation avec le profil Firebase authentifié
+  useEffect(() => {
+    if (userProfile) {
+      if (userProfile.role === 'driver') {
+        setDrivers((prev) => [
+          {
+            id: userProfile.uid,
+            fullName: userProfile.fullName || 'Chauffeur Connecté',
+            phoneNumber: userProfile.phone || '+221770000000',
+            avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+            rating: userProfile.ratingAvg || 5.0,
+            totalRides: 142,
+            acceptanceRate: 98,
+            walletBalance: userProfile.walletBalance || 35000,
+            dailyEarnings: 18500,
+            weeklyEarnings: 124000,
+            status: userProfile.isOnline ? 'online' : 'offline',
+            currentLocation: {
+              lat: 14.7167,
+              lng: -17.4677,
+              heading: 90,
+            },
+            vehicle: {
+              brand: userProfile.vehicleDetails?.brand || 'Peugeot',
+              model: userProfile.vehicleDetails?.model || '301',
+              color: userProfile.vehicleDetails?.color || 'Blanc',
+              plateNumber: userProfile.vehicleDetails?.plateNumber || 'DK-9921-AZ',
+              category: userProfile.vehicleDetails?.category || 'standard',
+              year: userProfile.vehicleDetails?.year || 2023,
+            },
+            kyc: {
+              cniNumber: '1-894-1992-00412',
+              driverLicenseNumber: 'PC-SN-2018-8472',
+              vehicleRegistrationNumber: 'CG-SN-784129',
+              insuranceExpiryDate: '2027-04-30',
+              technicalInspectionDate: '2027-01-15',
+              status: 'approved',
+            },
+          },
+          ...prev.filter((d) => d.id !== userProfile.uid),
+        ]);
+      } else {
+        setPassenger((prev) => ({
+          ...prev,
+          id: userProfile.uid,
+          fullName: userProfile.fullName || prev.fullName,
+          phoneNumber: userProfile.phone || prev.phoneNumber,
+        }));
+      }
+    }
+  }, [userProfile]);
+
   // Chauffeur sélectionné pour l'application chauffeur
-  const activeDriver = drivers[0]; // Babacar Fall
+  const activeDriver = drivers[0];
 
   // 1. Demande de course par le Passager
   const handleRequestRide = (params: {
@@ -130,7 +198,6 @@ export default function App() {
       acceptedAt: new Date().toISOString(),
     });
 
-    // Mettre à jour le statut du chauffeur
     setDrivers((prev) =>
       prev.map((d) => (d.id === activeDriver.id ? { ...d, status: 'busy' } : d))
     );
@@ -163,11 +230,13 @@ export default function App() {
     setIsSimulatingMovement(true);
   };
 
-  // 6. Terminaison de la course
+  // 6. Terminaison de la course (Modèle Yango : Encaissement direct + Prélèvement commission sur crédit chauffeur)
   const handleCompleteRide = (rideId: string) => {
     if (!activeRide || activeRide.id !== rideId) return;
 
-    const driverEarnings = activeRide.pricing.driverNetEarnings;
+    const totalFareCollected = activeRide.pricing.totalFare; // 100% perçu directement par le chauffeur du passager
+    const platformCommission = activeRide.pricing.platformCommission; // ex: 15% (300 FCFA sur 2000 FCFA)
+    const driverNetGain = activeRide.pricing.driverNetEarnings;
 
     setActiveRide({
       ...activeRide,
@@ -176,32 +245,103 @@ export default function App() {
     });
     setIsSimulatingMovement(false);
 
-    // Crédit du Wallet Chauffeur & mise à jour statistiques
+    let updatedWalletBalance = 0;
+
+    // Déduction automatique de la commission plateforme du solde de crédit Chauffeur
     setDrivers((prev) =>
-      prev.map((d) =>
-        d.id === activeDriver.id
-          ? {
-              ...d,
-              status: 'online',
-              walletBalance: d.walletBalance + driverEarnings,
-              dailyEarnings: d.dailyEarnings + driverEarnings,
-              weeklyEarnings: d.weeklyEarnings + driverEarnings,
-              totalRides: d.totalRides + 1,
-            }
-          : d
-      )
+      prev.map((d) => {
+        if (d.id === activeDriver.id) {
+          const newBalance = Math.max(0, d.walletBalance - platformCommission);
+          updatedWalletBalance = newBalance;
+          const isBelowThreshold = newBalance < MIN_DRIVER_WALLET_THRESHOLD;
+
+          return {
+            ...d,
+            // Si le solde passe sous le seuil de 1 000 FCFA, désactiver le statut en ligne
+            status: isBelowThreshold ? 'offline' : 'online',
+            walletBalance: newBalance,
+            dailyEarnings: d.dailyEarnings + totalFareCollected,
+            weeklyEarnings: d.weeklyEarnings + totalFareCollected,
+            totalRides: d.totalRides + 1,
+          };
+        }
+        return d;
+      })
+    );
+
+    // Enregistrement de la transaction de commission dans l'historique
+    const commissionTxn: DriverWalletTransaction = {
+      id: `txn_comm_${Date.now()}`,
+      driverId: activeDriver.id,
+      amount: -platformCommission,
+      type: 'commission',
+      provider: activeRide.paymentMethod,
+      description: `Commission course #${activeRide.id.substring(0, 8)} (15% sur ${totalFareCollected} FCFA direct)`,
+      rideId: activeRide.id,
+      createdAt: new Date().toISOString(),
+      status: 'success',
+      balanceAfter: updatedWalletBalance,
+    };
+    setWalletTransactions((prev) => [commissionTxn, ...prev]);
+
+    // Persistance Firestore si configuré
+    deductDriverCommission(
+      activeDriver.id,
+      activeRide.id,
+      platformCommission,
+      totalFareCollected,
+      activeRide.paymentMethod
     );
   };
 
-  // 7. Notation de fin de course par le Passager
+  // 7. Recharge du portefeuille de crédit Chauffeur via Wave ou Orange Money
+  const handleRechargeWallet = async (amount: number, method: 'wave' | 'orange_money') => {
+    let newBalanceCalculated = 0;
+
+    setDrivers((prev) =>
+      prev.map((d) => {
+        if (d.id === activeDriver.id) {
+          const newBalance = d.walletBalance + amount;
+          newBalanceCalculated = newBalance;
+          return {
+            ...d,
+            walletBalance: newBalance,
+          };
+        }
+        return d;
+      })
+    );
+
+    const rechargeTxn: DriverWalletTransaction = {
+      id: `txn_topup_${Date.now()}`,
+      driverId: activeDriver.id,
+      amount: amount,
+      type: 'deposit',
+      provider: method,
+      description: `Recharge crédit chauffeur (+${amount} FCFA via ${method === 'wave' ? 'Wave Sénégal' : 'Orange Money'})`,
+      createdAt: new Date().toISOString(),
+      status: 'success',
+      balanceAfter: newBalanceCalculated,
+    };
+    setWalletTransactions((prev) => [rechargeTxn, ...prev]);
+
+    // Persistance Firestore
+    await rechargeDriverWallet(activeDriver.id, amount, method);
+  };
+
+  // 8. Notation de fin de course par le Passager
   const handleRateRide = (rating: number, feedback: string) => {
     if (!activeRide) return;
     setActiveRide(null);
     setAssignedDriverLocation(null);
   };
 
-  // 8. Toggle Chauffeur En Ligne / Hors Ligne
+  // 9. Toggle Chauffeur En Ligne / Hors Ligne avec contrôle de solde de crédit
   const handleToggleOnline = (isOnline: boolean) => {
+    if (isOnline && activeDriver.walletBalance < MIN_DRIVER_WALLET_THRESHOLD) {
+      // Bloquer le passage en ligne si le solde est insuffisant (< 1 000 FCFA)
+      return;
+    }
     setDrivers((prev) =>
       prev.map((d) => (d.id === activeDriver.id ? { ...d, status: isOnline ? 'online' : 'offline' } : d))
     );
@@ -321,6 +461,11 @@ export default function App() {
     setActiveRide({ ...activeRide, currentRouteIndex: nextIndex });
   };
 
+  const openAuthForRole = (role: 'passenger' | 'driver') => {
+    setAuthDefaultRole(role);
+    setIsAuthModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 font-sans select-none overflow-hidden">
       
@@ -391,21 +536,53 @@ export default function App() {
             }`}
           >
             <Code2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Livrables & Architecture</span>
+            <span>Livrables Firebase & Code</span>
           </button>
         </div>
 
-        {/* BADGE PAIEMENTS SÉNÉGAL */}
-        <div className="flex items-center space-x-2 text-xs font-semibold">
-          <span className="px-2 py-1 rounded-md bg-sky-950/60 border border-sky-500/40 text-sky-300 font-mono text-[11px]">
-            Wave Pay 💙
-          </span>
-          <span className="px-2 py-1 rounded-md bg-orange-950/60 border border-orange-500/40 text-orange-300 font-mono text-[11px]">
-            Orange Money 🧡
-          </span>
-          <span className="px-2 py-1 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-mono text-[11px]">
-            FCFA Cash 💵
-          </span>
+        {/* SECTION AUTHENTIFICATION SMS SÉNÉGAL (+221) */}
+        <div className="flex items-center space-x-2">
+          {currentUser || userProfile ? (
+            <div className="flex items-center gap-2 bg-slate-950 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              <div className="text-left leading-none">
+                <p className="text-[11px] font-bold text-slate-100 flex items-center gap-1">
+                  <span>{userProfile?.fullName || 'Utilisateur'}</span>
+                  <span className="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-1 rounded uppercase">
+                    {userProfile?.role === 'driver' ? 'Chauffeur' : 'Passager'}
+                  </span>
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  {currentUser?.phoneNumber || userProfile?.phone || '+221 77 000 00 00'}
+                </p>
+              </div>
+              <button
+                onClick={() => logout()}
+                className="p-1 text-slate-400 hover:text-rose-400 transition-colors ml-1"
+                title="Se déconnecter"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthForRole('passenger')}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Connexion SMS (+221)</span>
+            </button>
+          )}
+
+          {/* BADGE PAIEMENTS SÉNÉGAL */}
+          <div className="hidden lg:flex items-center space-x-1 text-xs font-semibold">
+            <span className="px-2 py-1 rounded-md bg-sky-950/60 border border-sky-500/40 text-sky-300 font-mono text-[11px]">
+              Wave 💙
+            </span>
+            <span className="px-2 py-1 rounded-md bg-orange-950/60 border border-orange-500/40 text-orange-300 font-mono text-[11px]">
+              OM 🧡
+            </span>
+          </div>
         </div>
       </header>
 
@@ -467,6 +644,7 @@ export default function App() {
                   driver={activeDriver}
                   activeRide={activeRide}
                   assignedDriverLocation={assignedDriverLocation}
+                  walletTransactions={walletTransactions}
                   onToggleOnline={handleToggleOnline}
                   onAcceptRide={handleAcceptRide}
                   onDeclineRide={handleDeclineRide}
@@ -474,6 +652,7 @@ export default function App() {
                   onStartRide={handleStartRide}
                   onCompleteRide={handleCompleteRide}
                   onRequestPayout={handleRequestPayout}
+                  onRechargeWallet={handleRechargeWallet}
                 />
               </div>
             </div>
@@ -509,6 +688,7 @@ export default function App() {
                   driver={activeDriver}
                   activeRide={activeRide}
                   assignedDriverLocation={assignedDriverLocation}
+                  walletTransactions={walletTransactions}
                   onToggleOnline={handleToggleOnline}
                   onAcceptRide={handleAcceptRide}
                   onDeclineRide={handleDeclineRide}
@@ -516,6 +696,7 @@ export default function App() {
                   onStartRide={handleStartRide}
                   onCompleteRide={handleCompleteRide}
                   onRequestPayout={handleRequestPayout}
+                  onRechargeWallet={handleRechargeWallet}
                 />
               </div>
             </div>
@@ -545,6 +726,21 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* MODAL AUTHENTIFICATION SMS (+221) */}
+      <PhoneAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultRole={authDefaultRole}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <YoonVtcApp />
+    </AuthProvider>
   );
 }

@@ -33,6 +33,7 @@ import {
 import { SENEGAL_LOCATIONS, PRICING_RULES } from '../../data/senegalData';
 import { calculateRidePrice } from '../../services/pricingEngine';
 import { SenegalPaymentService } from '../../services/waveOrangeMoneyService';
+import { detectPassengerGpsLocation } from '../../services/gpsService';
 import { DakarMapView } from '../Map/DakarMapView';
 import confetti from 'canvas-confetti';
 
@@ -76,6 +77,25 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const [ratingVal, setRatingVal] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
   const [tipAmount, setTipAmount] = useState<number>(500);
+
+  // Géolocalisation GPS Passager
+  const [isLocatingGps, setIsLocatingGps] = useState<boolean>(false);
+  const [gpsFeedback, setGpsFeedback] = useState<string | null>(null);
+
+  const handleDetectGps = async () => {
+    setIsLocatingGps(true);
+    setGpsFeedback('Détection de vos coordonnées GPS satellites à Dakar...');
+    try {
+      const res = await detectPassengerGpsLocation();
+      setPickup(res.location);
+      setGpsFeedback(res.message);
+      setTimeout(() => setGpsFeedback(null), 6000);
+    } catch (err) {
+      console.warn('Erreur GPS :', err);
+    } finally {
+      setIsLocatingGps(false);
+    }
+  };
 
   // Estimation du prix actuel
   const estimate = calculateRidePrice(pickup, destination, category);
@@ -169,7 +189,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* Main Content Area */}
       <div className="flex-1 relative flex flex-col overflow-hidden">
-        {/* Leaflet Map View */}
+        {/* Leaflet / Google Map View */}
         <div className="w-full h-1/2 min-h-[220px] relative">
           <DakarMapView
             drivers={drivers}
@@ -177,6 +197,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             selectedDestination={destination}
             activeRide={activeRide}
             assignedDriverLocation={assignedDriverLocation}
+            onGpsLocatePassenger={handleDetectGps}
           />
         </div>
 
@@ -186,6 +207,29 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION) */}
           {!activeRide && (
             <div className="space-y-4">
+              {/* Bouton Rapide Détection GPS Passager */}
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={handleDetectGps}
+                  disabled={isLocatingGps}
+                  className="flex-1 py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 flex items-center justify-center space-x-2 transition-all shadow-sm active:scale-[0.99]"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>{isLocatingGps ? 'Détection satellite en cours...' : '📍 Détecter ma position GPS exacte (Dakar)'}</span>
+                </button>
+              </div>
+
+              {gpsFeedback && (
+                <div className="px-3 py-2 bg-emerald-950/80 border border-emerald-500/50 rounded-lg text-xs text-emerald-200 flex items-center justify-between animate-fadeIn">
+                  <span className="truncate">{gpsFeedback}</span>
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+                </div>
+              )}
+
               {/* Sélecteurs de Trajet (Départ / Destination) */}
               <div className="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
                 {/* Départ */}

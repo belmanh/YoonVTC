@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Utilisateur de la plateforme Yoon VTC Sénégal (Passager, Chauffeur ou Admin)",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Identifiant unique Firebase Auth"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Numéro de téléphone sénégalais au format E.164 (+221XXXXXXXXX)",
+          "pattern": "^\\+221[0-9]{9}$"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Nom complet de l'utilisateur",
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "enum": ["passenger", "driver", "admin"],
+          "description": "Rôle de l'utilisateur sur la plateforme"
+        },
+        "walletBalance": {
+          "type": "number",
+          "description": "Solde du portefeuille en FCFA (XOF)"
+        },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Statut de vérification du compte"
+        },
+        "ratingAvg": {
+          "type": "number",
+          "description": "Note moyenne attribuée"
+        },
+        "isOnline": {
+          "type": "boolean",
+          "description": "Statut de disponibilité du chauffeur"
+        },
+        "isBusy": {
+          "type": "boolean",
+          "description": "Indicateur si le chauffeur est en course"
+        }
+      },
+      "required": ["uid", "phone", "fullName", "role", "isVerified"]
+    },
+    "Ride": {
+      "title": "Ride",
+      "description": "Course de transport VTC réservée sur la plateforme Yoon VTC",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifiant unique de la course"
+        },
+        "passengerId": {
+          "type": "string",
+          "description": "UID du passager ayant commandé la course"
+        },
+        "driverId": {
+          "type": "string",
+          "description": "UID du chauffeur assigné à la course"
+        },
+        "fareAmount": {
+          "type": "number",
+          "description": "Montant total de la course en FCFA (XOF)"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["cash", "wave", "orange_money"],
+          "description": "Moyen de paiement choisi"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["requested", "accepted", "arrived", "in_progress", "completed", "cancelled"],
+          "description": "Statut actuel de la course"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["eco", "standard", "confort", "interurbain"],
+          "description": "Gamme de véhicule sélectionnée"
+        }
+      },
+      "required": ["id", "passengerId", "fareAmount", "paymentMethod", "status", "category"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Transaction de portefeuille (recharge, commission, paiement ou retrait Wave/OM)",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifiant unique de la transaction"
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID de l'utilisateur associé"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Montant de la transaction en FCFA"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["ride_fee", "commission", "deposit", "withdrawal"],
+          "description": "Type d'opération financière"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["wave", "orange_money", "cash"],
+          "description": "Fournisseur de paiement Mobile Money ou Cash"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "success", "failed"],
+          "description": "Statut d'exécution de la transaction"
+        }
+      },
+      "required": ["id", "userId", "amount", "type", "provider", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Profils des passagers, chauffeurs et administrateurs Yoon VTC"
+    },
+    "/rides/{rideId}": {
+      "schema": "Ride",
+      "description": "Courses en cours, passées et demandées en temps réel"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Historique des mouvements financiers et règlements Wave / Orange Money"
+    }
+  }
+}
