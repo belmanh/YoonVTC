@@ -117,6 +117,33 @@ export interface Ride {
   routeCoordinates: [number, number][];
   currentRouteIndex: number;
   sosAlertTriggered?: boolean;
+  landmarkHint?: string; // Repère visuel (ex: "Devant la Brioche Dorée")
+  voiceNoteUrl?: string; // URL ou data audio du message vocal
+  voiceNoteDuration?: number; // Durée de la note vocale en secondes
+  isFixedPricePackage?: boolean;
+  fixedPackageName?: string;
+  shareToken?: string;
+}
+
+export interface FixedPricePackage {
+  id: string;
+  name: string;
+  destinationName: string;
+  pickupName: string;
+  category: VehicleCategory;
+  priceFcfa: number;
+  estimatedDurationMin: number;
+  distanceKm: number;
+  tollIncluded: boolean;
+  badgeText: string;
+  description: string;
+}
+
+export interface PastRideRecord extends Ride {
+  receiptNumber: string;
+  ratingGiven?: number;
+  feedbackGiven?: string;
+  tipAmount?: number;
 }
 
 export interface PricingRule {

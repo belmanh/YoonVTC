@@ -28,11 +28,30 @@ import {
   Info,
   QrCode,
   CheckCircle,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Database,
+  CloudOff,
+  HardDrive,
+  Activity,
+  Layers,
+  ShieldAlert,
+  Receipt,
+  Volume2,
+  Lock,
+  Sun,
+  Moon,
 } from 'lucide-react';
-import { Driver, Ride, PayoutTransaction, DriverWalletTransaction, MIN_DRIVER_WALLET_THRESHOLD } from '../../types/vtc';
+import { Driver, Ride, PayoutTransaction, DriverWalletTransaction, MIN_DRIVER_WALLET_THRESHOLD, PastRideRecord } from '../../types/vtc';
 import { SenegalPaymentService } from '../../services/waveOrangeMoneyService';
 import { DriverGpsTelemetryEmitter, calculateRouteAndEta } from '../../services/gpsService';
+import { driverOfflineSyncService, SyncStats, OfflineQueueItem } from '../../services/driverOfflineSyncService';
 import { DakarMapView } from '../Map/DakarMapView';
+import { VoiceNotePlayerCard } from '../Audio/VoiceNotePlayer';
+import { SosEmergencyModal } from '../Safety/SosEmergencyModal';
+import { DigitalReceiptModal } from '../History/DigitalReceiptModal';
+import { SENEGAL_LOCATIONS } from '../../data/senegalData';
 import confetti from 'canvas-confetti';
 
 interface DriverAppProps {
@@ -64,13 +83,124 @@ export const DriverApp: React.FC<DriverAppProps> = ({
   onRequestPayout,
   onRechargeWallet,
 }) => {
-  const [activeTab, setActiveTab] = useState<'map' | 'wallet' | 'kyc'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'wallet' | 'kyc' | 'history'>('map');
   const [countdown, setCountdown] = useState<number>(15);
 
-  // Modals
+  // Offline Sync State
+  const [syncStats, setSyncStats] = useState<SyncStats>(driverOfflineSyncService.getStats());
+  const [showOfflineModal, setShowOfflineModal] = useState<boolean>(false);
+  const [isManualSyncing, setIsManualSyncing] = useState<boolean>(false);
+  const [offlineActionToast, setOfflineActionToast] = useState<string | null>(null);
+
+  // Modals & Safety
   const [showRechargeModal, setShowRechargeModal] = useState<boolean>(false);
   const [showPayoutModal, setShowPayoutModal] = useState<boolean>(false);
   const [showLowBalanceWarning, setShowLowBalanceWarning] = useState<boolean>(false);
+  const [showSosModal, setShowSosModal] = useState<boolean>(false);
+  const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
+  const [selectedReceiptRide, setSelectedReceiptRide] = useState<Ride | null>(null);
+  const [pastDriverRides, setPastDriverRides] = useState<PastRideRecord[]>([
+    {
+      id: 'SN-4821',
+      receiptNumber: 'REC-4821-SN',
+      passenger: {
+        id: 'pass_sn_01',
+        fullName: 'Fatou Bintou Sall',
+        phone: '+221 77 412 88 90',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        rating: 4.95,
+        savedPlaces: {},
+      },
+      driver,
+      pickup: SENEGAL_LOCATIONS[1],
+      destination: SENEGAL_LOCATIONS[0],
+      category: 'standard',
+      paymentMethod: 'wave',
+      paymentStatus: 'paid',
+      status: 'completed',
+      pricing: {
+        baseFare: 800,
+        distanceCost: 2800,
+        durationCost: 900,
+        tollFee: 0,
+        zoneMultiplier: 1.0,
+        surgeMultiplier: 1.0,
+        totalFare: 4500,
+        platformCommission: 675,
+        driverNetEarnings: 3825,
+      },
+      distanceKm: 14.2,
+      durationMinutes: 26,
+      createdAt: '2026-08-14T08:30:00Z',
+      completedAt: '2026-08-14T08:58:00Z',
+      routeCoordinates: [],
+      currentRouteIndex: 0,
+      landmarkHint: 'Devant la pharmacie des Almadies',
+      ratingGiven: 5,
+      feedbackGiven: 'Excellente conduite, voiture très propre.',
+    },
+    {
+      id: 'SN-3902',
+      receiptNumber: 'REC-3902-SN',
+      passenger: {
+        id: 'pass_sn_02',
+        fullName: 'Ibrahima Ndiaye',
+        phone: '+221 78 112 33 44',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+        rating: 4.85,
+        savedPlaces: {},
+      },
+      driver,
+      pickup: SENEGAL_LOCATIONS[0],
+      destination: SENEGAL_LOCATIONS[3],
+      category: 'standard',
+      paymentMethod: 'orange_money',
+      paymentStatus: 'paid',
+      status: 'completed',
+      pricing: {
+        baseFare: 1500,
+        distanceCost: 11000,
+        durationCost: 1500,
+        tollFee: 3000,
+        zoneMultiplier: 1.0,
+        surgeMultiplier: 1.0,
+        totalFare: 17000,
+        platformCommission: 2550,
+        driverNetEarnings: 14450,
+      },
+      distanceKm: 52.0,
+      durationMinutes: 45,
+      createdAt: '2026-08-14T06:15:00Z',
+      completedAt: '2026-08-14T07:00:00Z',
+      routeCoordinates: [],
+      currentRouteIndex: 0,
+      isFixedPricePackage: true,
+      fixedPackageName: 'Forfait Dakar ↔ AIBD',
+      ratingGiven: 5,
+      feedbackGiven: 'Ponctuel et rapide sur l’autoroute à péage.',
+    },
+  ]);
+
+  // Theme state (sombre/clair automatique basé sur l'heure locale)
+  const [isThemeAuto, setIsThemeAuto] = useState<boolean>(true);
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
+    const hour = new Date().getHours();
+    // De nuit (19h à 7h) -> dark, sinon -> light
+    return (hour < 7 || hour >= 19) ? 'dark' : 'light';
+  });
+
+  // Mettre à jour automatiquement le thème toutes les minutes si en mode auto
+  useEffect(() => {
+    if (!isThemeAuto) return;
+    const checkTheme = () => {
+      const hour = new Date().getHours();
+      const nextTheme = (hour < 7 || hour >= 19) ? 'dark' : 'light';
+      setThemeMode(nextTheme);
+    };
+    checkTheme();
+    const interval = setInterval(checkTheme, 60000); // toutes les minutes
+    return () => clearInterval(interval);
+  }, [isThemeAuto]);
 
   // Formulaire Recharge Chauffeur
   const [rechargeMethod, setRechargeMethod] = useState<'wave' | 'orange_money'>('wave');
@@ -85,16 +215,107 @@ export const DriverApp: React.FC<DriverAppProps> = ({
   const [payoutPhone, setPayoutPhone] = useState<string>(driver.phone);
 
   const isOnline = driver.status === 'online';
+  const isBusy = driver.status === 'busy' || Boolean(activeRide && activeRide.status !== 'searching_driver' && activeRide.status !== 'completed');
   const isBalanceCritical = driver.walletBalance < MIN_DRIVER_WALLET_THRESHOLD; // < 1 000 FCFA
   const isBalanceLow = driver.walletBalance >= MIN_DRIVER_WALLET_THRESHOLD && driver.walletBalance < 3000; // 1 000 - 3 000 FCFA
 
   // Estimation du nombre de courses possibles avec le solde actuel (moyenne 300 FCFA de commission par course)
   const estimatedRidesCount = Math.max(0, Math.floor(driver.walletBalance / 350));
 
-  // Télémétrie GPS Chauffeur en temps réel (Emission toutes les 5s à Firestore)
+  // Télémétrie GPS Chauffeur en temps réel (Emission toutes les 5s à Firestore ou file locale)
   const [lastGpsPing, setLastGpsPing] = useState<string | null>(null);
   const [gpsPingCount, setGpsPingCount] = useState<number>(0);
   const gpsEmitterRef = useRef<DriverGpsTelemetryEmitter | null>(null);
+
+  // Abonnement aux changements du service de synchronisation hors-ligne
+  useEffect(() => {
+    const unsubscribe = driverOfflineSyncService.subscribe((stats) => {
+      setSyncStats(stats);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sauvegarde automatique du cache de la course active et du profil chauffeur en local
+  useEffect(() => {
+    driverOfflineSyncService.saveActiveRideCache(activeRide);
+    driverOfflineSyncService.saveDriverProfileCache(driver);
+  }, [activeRide, driver]);
+
+  // Forcer la synchronisation manuelle
+  const handleForceSync = async () => {
+    setIsManualSyncing(true);
+    try {
+      const res = await driverOfflineSyncService.syncPendingQueue();
+      if (res.syncedCount > 0) {
+        setOfflineActionToast(`✅ ${res.syncedCount} élément(s) synchronisé(s) avec succès !`);
+        setTimeout(() => setOfflineActionToast(null), 3500);
+      } else if (res.failedCount > 0) {
+        setOfflineActionToast(`⚠️ Échec de synchronisation (${res.failedCount} restants)`);
+        setTimeout(() => setOfflineActionToast(null), 3500);
+      } else {
+        setOfflineActionToast(`✨ File d'attente déjà à jour`);
+        setTimeout(() => setOfflineActionToast(null), 2500);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsManualSyncing(false);
+    }
+  };
+
+  // Basculer la simulation de perte de réseau (Tunnel Dakar / Panne antenne)
+  const handleToggleSimulation = () => {
+    const isSimNow = driverOfflineSyncService.toggleNetworkSimulation();
+    if (isSimNow) {
+      setOfflineActionToast('⚠️ Simulation Hors-ligne activée : Les données sont stockées dans le LocalStorage.');
+    } else {
+      setOfflineActionToast('🟢 Reconnexion au réseau : Synchronisation automatique en cours...');
+    }
+    setTimeout(() => setOfflineActionToast(null), 4000);
+  };
+
+  // Enveloppes de gestion de statut de course tolérantes aux pannes réseau
+  const handleDriverArrivedOfflineAware = (rideId: string) => {
+    if (!syncStats.isOnline) {
+      driverOfflineSyncService.queueRideStatusUpdate(driver.id, rideId, 'arrived');
+      setOfflineActionToast('💾 Arrivée au point de départ enregistrée en local (Hors-ligne)');
+      setTimeout(() => setOfflineActionToast(null), 3500);
+    }
+    onDriverArrived(rideId);
+  };
+
+  const handleStartRideOfflineAware = (rideId: string) => {
+    if (!syncStats.isOnline) {
+      driverOfflineSyncService.queueRideStatusUpdate(driver.id, rideId, 'in_progress', {
+        startedAt: new Date().toISOString(),
+      });
+      setOfflineActionToast('💾 Démarrage de course enregistré en local (Hors-ligne)');
+      setTimeout(() => setOfflineActionToast(null), 3500);
+    }
+    onStartRide(rideId);
+  };
+
+  const handleCompleteRideOfflineAware = (rideId: string) => {
+    if (!syncStats.isOnline) {
+      driverOfflineSyncService.queueRideStatusUpdate(driver.id, rideId, 'completed', {
+        completedAt: new Date().toISOString(),
+      });
+      setOfflineActionToast('💾 Fin de course & commission enregistrées en local (Hors-ligne)');
+      setTimeout(() => setOfflineActionToast(null), 3500);
+    }
+
+    if (activeRide) {
+      const record: PastRideRecord = {
+        ...activeRide,
+        receiptNumber: `REC-${activeRide.id.replace('SN-', '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      };
+      setPastDriverRides((prev) => [record, ...prev]);
+    }
+
+    onCompleteRide(rideId);
+  };
 
   useEffect(() => {
     if (isOnline) {
@@ -228,10 +449,22 @@ export const DriverApp: React.FC<DriverAppProps> = ({
     setShowPayoutModal(false);
   };
 
+  // Dynamic theme-aware classes
+  const isDark = themeMode === 'dark';
+  const themeBgMain = isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800';
+  const themeBgHeader = isDark ? 'bg-slate-900/95 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeTextMain = isDark ? 'text-slate-100' : 'text-slate-900';
+  const themeTextMuted = isDark ? 'text-slate-400' : 'text-slate-500';
+  const themeBgBandeau = isDark ? 'bg-slate-950 border-slate-800/80' : 'bg-slate-100 border-slate-200';
+  const themeBgIndicator = isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeTabs = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeCard = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeNestedCard = isDark ? 'bg-slate-950 border-slate-800/60' : 'bg-slate-50 border-slate-200';
+
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 relative overflow-hidden">
+    <div className={`flex flex-col h-full relative overflow-hidden ${themeBgMain}`}>
       {/* Top Header Mobile Driver */}
-      <div className="px-4 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 flex items-center justify-between z-10">
+      <div className={`px-4 py-3 backdrop-blur-md border-b flex items-center justify-between z-10 ${themeBgHeader}`}>
         <div className="flex items-center space-x-3">
           <div className="relative">
             <img
@@ -240,42 +473,88 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400"
             />
             <span
-              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-900 ${
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDark ? 'border-slate-900' : 'border-white'} ${
                 isOnline ? 'bg-emerald-500' : 'bg-slate-500'
               }`}
             ></span>
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <h3 className="text-sm font-bold text-slate-100">{driver.fullName}</h3>
+              <h3 className={`text-sm font-bold ${themeTextMain}`}>{driver.fullName}</h3>
               <span className="text-[10px] bg-slate-800 text-amber-400 px-1.5 py-0.2 rounded font-bold">
                 ★ {driver.rating.toFixed(1)}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className={`text-[11px] font-mono ${themeTextMuted}`}>
               {driver.vehicle.brand} {driver.vehicle.model} • <span className="text-emerald-400 font-bold">{driver.vehicle.plateNumber}</span>
             </p>
           </div>
         </div>
 
-        {/* Bouton Toggle En Ligne / Hors Ligne avec contrôle solde minimum */}
-        <button
-          onClick={handleToggleOnlineAttempt}
-          className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all shadow-md ${
-            isOnline
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
-              : isBalanceCritical
-              ? 'bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300'
-              : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
-          }`}
-        >
-          <Power className="w-3.5 h-3.5" />
-          <span>{isOnline ? 'EN LIGNE' : isBalanceCritical ? 'RECHARGE REQUISE' : 'HORS LIGNE'}</span>
-        </button>
+        {/* Boutons d'action : SOS, Theme Toggle & En Ligne/Hors Ligne */}
+        <div className="flex items-center space-x-1.5">
+          {activeRide && (
+            <button
+              onClick={() => setShowSosModal(true)}
+              className="p-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-md shadow-rose-900/40 active:scale-95"
+              title="Urgence SOS Sécurité Chauffeur"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 fill-current" />
+              <span className="hidden sm:inline">SOS</span>
+            </button>
+          )}
+
+          {/* Bouton de Bascule de Thème (Auto / Manuel) */}
+          <button
+            onClick={() => {
+              setIsThemeAuto(false);
+              setThemeMode(prev => prev === 'dark' ? 'light' : 'dark');
+            }}
+            onDoubleClick={() => {
+              setIsThemeAuto(true);
+              const hour = new Date().getHours();
+              setThemeMode((hour < 7 || hour >= 19) ? 'dark' : 'light');
+            }}
+            className={`p-1.5 rounded-xl border flex items-center gap-1 transition-all ${
+              isDark 
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+            }`}
+            title={isThemeAuto ? "Thème Auto basé sur l'heure locale (Clic pour forcer, double-clic pour restaurer)" : "Thème Manuel (Double-clic pour restaurer Auto)"}
+          >
+            {isDark ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 text-amber-500 animate-pulse" />}
+            <span className="text-[9px] font-black uppercase hidden sm:inline-block">
+              {isThemeAuto ? '🌙 Auto' : '☀️ Manuel'}
+            </span>
+          </button>
+
+          {isBusy ? (
+            <div className="px-3 py-1.5 bg-amber-950/80 border border-amber-500/50 text-amber-300 rounded-xl font-bold text-xs flex items-center space-x-1.5 shadow-md">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>EN COURSE (1/1)</span>
+            </div>
+          ) : (
+            <button
+              onClick={handleToggleOnlineAttempt}
+              className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all shadow-md ${
+                isOnline
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
+                  : isBalanceCritical
+                  ? 'bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300'
+                  : isDark
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300'
+              }`}
+            >
+              <Power className="w-3.5 h-3.5" />
+              <span>{isOnline ? 'EN LIGNE' : isBalanceCritical ? 'RECHARGE REQUISE' : 'HORS LIGNE'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* BANDEAU SOLDE DE CRÉDIT CHAUFFEUR (MODÈLE YANGO) & ACTION RECHARGE */}
-      <div className="px-3 py-2 bg-slate-950 border-b border-slate-800/80 flex items-center justify-between gap-2 z-10 text-xs">
+      <div className={`px-3 py-2 border-b flex items-center justify-between gap-2 z-10 text-xs ${themeBgBandeau}`}>
         <div className="flex items-center space-x-2">
           <div
             className={`w-2.5 h-2.5 rounded-full shrink-0 ${
@@ -288,7 +567,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           />
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="text-[10px] text-slate-400 uppercase font-semibold">Crédit Chauffeur :</span>
+              <span className={`text-[10px] uppercase font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Crédit Chauffeur :</span>
               <span
                 className={`font-mono font-black ${
                   isBalanceCritical
@@ -301,13 +580,13 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 {SenegalPaymentService.formatFCFA(driver.walletBalance)}
               </span>
             </div>
-            <p className="text-[9px] text-slate-500 leading-tight">
+            <p className="text-[9px] leading-tight">
               {isBalanceCritical ? (
                 <span className="text-rose-400 font-semibold">Solde &lt; 1 000 F : Bloqué (Recharge requise)</span>
               ) : isBalanceLow ? (
                 <span className="text-amber-400">Solde faible (~{estimatedRidesCount} courses possibles)</span>
               ) : (
-                <span className="text-emerald-400/90">Solde actif (~{estimatedRidesCount} courses) • Com. 15%</span>
+                <span className="text-emerald-400/90 font-medium">Solde actif (~{estimatedRidesCount} courses) • Com. 15%</span>
               )}
             </p>
           </div>
@@ -323,43 +602,137 @@ export const DriverApp: React.FC<DriverAppProps> = ({
         </button>
       </div>
 
-      {/* Navigation Tabs (Carte / Portefeuille / Documents KYC) */}
-      <div className="grid grid-cols-3 bg-slate-900 border-b border-slate-800 text-xs font-semibold">
+      {/* BANDEAU INDICATEUR RÉSEAU DISCRET & SYNCHRONISATION (OFFLINE FIRST) */}
+      <div
+        className={`px-3 py-1.5 border-b flex items-center justify-between text-xs transition-colors z-10 ${
+          !syncStats.isOnline
+            ? 'bg-amber-950/95 border-amber-500/50 text-amber-200 shadow-sm'
+            : syncStats.pendingCount > 0
+            ? 'bg-sky-950/90 border-sky-500/40 text-sky-200'
+            : themeBgIndicator
+        }`}
+      >
+        <div className="flex items-center space-x-2">
+          {!syncStats.isOnline ? (
+            <div className="flex items-center space-x-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                <CloudOff className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Mode hors-ligne : données sauvegardées localement</span>
+              </div>
+            </div>
+          ) : syncStats.pendingCount > 0 ? (
+            <div className="flex items-center space-x-1.5 text-sky-300 font-semibold">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400" />
+              <span>Connexion rétablie : auto-synchronisation en cours...</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-1.5 text-emerald-400 text-[11px] font-medium">
+              <Wifi className="w-3.5 h-3.5" />
+              <span>Réseau Dakar 4G/5G Connecté</span>
+            </div>
+          )}
+
+          {syncStats.pendingCount > 0 && (
+            <span className="px-1.5 py-0.2 bg-amber-900/80 border border-amber-500/30 text-amber-200 rounded text-[10px] font-mono font-bold">
+              {syncStats.pendingCount} en attente (GPS: {syncStats.pendingLocationsCount})
+            </span>
+          )}
+        </div>
+
+        {/* Boutons d'action et diagnostic hors-ligne */}
+        <div className="flex items-center space-x-1.5">
+          {/* Bouton de bascule simulation (Tunnel / VDN) */}
+          <button
+            onClick={handleToggleSimulation}
+            className={`px-2 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 transition-all ${
+              syncStats.isSimulatedOffline
+                ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-400 shadow-sm'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+            }`}
+            title="Simuler une perte de réseau pour tester la résilience hors-ligne"
+          >
+            {syncStats.isSimulatedOffline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3 text-slate-400" />}
+            <span>{syncStats.isSimulatedOffline ? 'Simu Déco : ON' : 'Tester Hors-ligne'}</span>
+          </button>
+
+          {/* Bouton Synchro ou Diagnostic */}
+          <button
+            onClick={() => setShowOfflineModal(true)}
+            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold border border-slate-700 flex items-center gap-1"
+            title="Consulter les détails du stockage local et forcer la synchronisation"
+          >
+            <Database className="w-3 h-3 text-emerald-400" />
+            <span>Sync ({syncStats.pendingCount})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* TOAST D'ACTION PERSISTANCE HORS-LIGNE */}
+      {offlineActionToast && (
+        <div className="mx-3 mt-2 p-2.5 bg-slate-900/95 border border-emerald-500/50 rounded-xl text-xs text-slate-100 flex items-center justify-between shadow-xl animate-fadeIn z-20">
+          <div className="flex items-center space-x-2">
+            <HardDrive className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-semibold text-[11px]">{offlineActionToast}</span>
+          </div>
+          <button onClick={() => setOfflineActionToast(null)} className="text-slate-400 hover:text-white p-0.5">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation Tabs (Carte / Portefeuille / Reçus / Documents KYC) */}
+      <div className={`grid grid-cols-4 border-b text-xs font-semibold ${themeTabs}`}>
         <button
           onClick={() => setActiveTab('map')}
-          className={`py-2.5 flex items-center justify-center space-x-1.5 border-b-2 transition-colors ${
+          className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'map'
-              ? 'border-emerald-500 text-emerald-400 bg-slate-800/50'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
           <Navigation className="w-3.5 h-3.5" />
-          <span>Navigation</span>
+          <span className="truncate">Nav</span>
         </button>
 
         <button
           onClick={() => setActiveTab('wallet')}
-          className={`py-2.5 flex items-center justify-center space-x-1.5 border-b-2 transition-colors ${
+          className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'wallet'
-              ? 'border-emerald-500 text-emerald-400 bg-slate-800/50'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
           <Wallet className="w-3.5 h-3.5" />
-          <span>Crédit & Wallet</span>
-          {isBalanceCritical && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse ml-1" />}
+          <span className="truncate">Wallet</span>
+          {isBalanceCritical && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse ml-0.5" />}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
+            activeTab === 'history'
+              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
+          }`}
+        >
+          <Receipt className="w-3.5 h-3.5" />
+          <span className="truncate">Reçus</span>
         </button>
 
         <button
           onClick={() => setActiveTab('kyc')}
-          className={`py-2.5 flex items-center justify-center space-x-1.5 border-b-2 transition-colors ${
+          className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'kyc'
-              ? 'border-emerald-500 text-emerald-400 bg-slate-800/50'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
-          <span>Profil & KYC</span>
+          <span className="truncate">KYC</span>
         </button>
       </div>
 
@@ -380,28 +753,54 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
 
             {/* Bottom Actions for Driver */}
-            <div className="w-full flex-1 bg-slate-900 border-t border-slate-800 rounded-t-2xl shadow-2xl p-4 overflow-y-auto flex flex-col justify-between">
+            <div className={`w-full flex-1 border-t rounded-t-2xl shadow-2xl p-4 overflow-y-auto flex flex-col justify-between ${themeCard}`}>
               
               {/* Télémétrie GPS Live Banner */}
               {isOnline && (
-                <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-xs mb-2 text-emerald-200 shadow-sm">
+                <div
+                  className={`flex items-center justify-between px-3 py-1.5 border rounded-xl text-xs mb-2 shadow-sm transition-colors ${
+                    !syncStats.isOnline
+                      ? 'bg-amber-950/70 border-amber-500/50 text-amber-200'
+                      : 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200'
+                  }`}
+                >
                   <div className="flex items-center space-x-2">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                          !syncStats.isOnline ? 'bg-amber-400' : 'bg-emerald-400'
+                        }`}
+                      ></span>
+                      <span
+                        className={`relative inline-flex rounded-full h-2 w-2 ${
+                          !syncStats.isOnline ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`}
+                      ></span>
                     </span>
-                    <span className="font-semibold text-emerald-300 flex items-center gap-1">
-                      <Radio className="w-3 h-3 text-emerald-400" />
-                      GPS 5s Firestore
+                    <span
+                      className={`font-semibold flex items-center gap-1 ${
+                        !syncStats.isOnline ? 'text-amber-300' : 'text-emerald-300'
+                      }`}
+                    >
+                      <Radio className={`w-3 h-3 ${!syncStats.isOnline ? 'text-amber-400' : 'text-emerald-400'}`} />
+                      {!syncStats.isOnline ? 'GPS LocalStorage (Hors-ligne)' : 'GPS 5s Firestore (Live)'}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2 font-mono text-[11px] text-emerald-400/90">
-                    <span>{lastGpsPing ? `Synchro : ${lastGpsPing}` : 'Initialisation...'}</span>
-                    {gpsPingCount > 0 && (
+                  <div
+                    className={`flex items-center space-x-2 font-mono text-[11px] ${
+                      !syncStats.isOnline ? 'text-amber-400/90' : 'text-emerald-400/90'
+                    }`}
+                  >
+                    <span>{lastGpsPing ? `Ping : ${lastGpsPing}` : 'Initialisation...'}</span>
+                    {syncStats.pendingLocationsCount > 0 && !syncStats.isOnline ? (
+                      <span className="bg-amber-900/90 text-amber-200 px-1.5 py-0.2 rounded text-[10px]">
+                        {syncStats.pendingLocationsCount} en attente
+                      </span>
+                    ) : gpsPingCount > 0 ? (
                       <span className="bg-emerald-800/80 px-1.5 py-0.2 rounded text-[10px]">
                         #{gpsPingCount}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               )}
@@ -474,19 +873,19 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-100 text-sm">Radar de Dispatch Actif</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <h4 className={`font-bold text-sm ${themeTextMain}`}>Radar de Dispatch Actif</h4>
+                    <p className={`text-xs mt-0.5 ${themeTextMuted}`}>
                       En attente de demandes de course dans votre zone (Dakar & VDN)...
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 w-full pt-2">
-                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-left">
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold">Chiffre d'affaires perçu</p>
+                    <div className={`p-2.5 rounded-xl text-left ${themeNestedCard}`}>
+                      <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Chiffre d'affaires perçu</p>
                       <p className="text-sm font-black text-emerald-400">{SenegalPaymentService.formatFCFA(driver.dailyEarnings)}</p>
                     </div>
-                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-left">
-                      <p className="text-[10px] text-slate-400 uppercase font-semibold">Courses aujourd'hui</p>
-                      <p className="text-sm font-black text-slate-100">6 courses</p>
+                    <div className={`p-2.5 rounded-xl text-left ${themeNestedCard}`}>
+                      <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Courses aujourd'hui</p>
+                      <p className={`text-sm font-black ${themeTextMain}`}>6 courses</p>
                     </div>
                   </div>
                 </div>
@@ -570,34 +969,65 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 </div>
               )}
 
-              {/* ÉTAT COURSE EN COURS (ÉTAPES DE GUIDAGE GPS) */}
+              {/* ÉTAT COURSE EN COURS (ÉTAPES DE GUIDAGE GPS, VOCAL & APPEL DIRECT) */}
               {activeRide && (activeRide.status === 'driver_assigned' || activeRide.status === 'driver_arrived' || activeRide.status === 'in_progress') && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-emerald-400">
-                        {activeRide.status === 'driver_assigned' && '1. En route vers le client'}
-                        {activeRide.status === 'driver_arrived' && '2. Arrivé au point de prise en charge'}
-                        {activeRide.status === 'in_progress' && '3. Course en cours vers la destination'}
-                      </p>
-                      <h4 className="text-sm font-bold text-slate-100 mt-0.5">
-                        Passager: {activeRide.passenger.fullName}
-                      </h4>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-emerald-400">
+                          {activeRide.status === 'driver_assigned' && '1. En route vers le client'}
+                          {activeRide.status === 'driver_arrived' && '2. Arrivé au point de prise en charge'}
+                          {activeRide.status === 'in_progress' && '3. Course en cours vers la destination'}
+                        </p>
+                        <h4 className="text-sm font-bold text-slate-100 mt-0.5 flex items-center gap-1.5">
+                          <span>Passager: {activeRide.passenger.fullName}</span>
+                          <span className="text-amber-400 text-xs">★ {activeRide.passenger.rating}</span>
+                        </h4>
+                      </div>
+
+                      <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/30 rounded text-xs font-mono font-bold">
+                        #{activeRide.id}
+                      </span>
                     </div>
 
+                    {/* Note Vocale & Repère passager */}
+                    {(activeRide.voiceNoteUrl || activeRide.landmarkHint) && (
+                      <VoiceNotePlayerCard
+                        audioUrl={activeRide.voiceNoteUrl}
+                        duration={activeRide.voiceNoteDuration || 5}
+                        landmarkHint={activeRide.landmarkHint}
+                        senderName={activeRide.passenger.fullName}
+                        role="driver"
+                      />
+                    )}
+                  </div>
+
+                  {/* Boutons d'Appel Direct Vocal (Téléphonie & WhatsApp) */}
+                  <div className="grid grid-cols-2 gap-2">
                     <a
                       href={`tel:${activeRide.passenger.phone}`}
-                      className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500"
-                      title="Appeler le passager"
+                      className="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95 transition-all"
                     >
-                      <Phone className="w-4 h-4" />
+                      <Phone className="w-4 h-4 fill-current animate-bounce" />
+                      <span>Appel Direct</span>
+                    </a>
+
+                    <a
+                      href={`https://wa.me/${activeRide.passenger.phone.replace(/[^0-9]/g, '') || '221774128890'}?text=${encodeURIComponent(`Bonjour ${activeRide.passenger.fullName}, je suis votre chauffeur Yoon VTC pour la course #${activeRide.id}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95 transition-all"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>WhatsApp</span>
                     </a>
                   </div>
 
                   {/* Actions par étape */}
                   {activeRide.status === 'driver_assigned' && (
                     <button
-                      onClick={() => onDriverArrived(activeRide.id)}
+                      onClick={() => handleDriverArrivedOfflineAware(activeRide.id)}
                       className="w-full py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2"
                     >
                       <CheckCircle2 className="w-4 h-4" />
@@ -607,7 +1037,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
                   {activeRide.status === 'driver_arrived' && (
                     <button
-                      onClick={() => onStartRide(activeRide.id)}
+                      onClick={() => handleStartRideOfflineAware(activeRide.id)}
                       className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2"
                     >
                       <ArrowRight className="w-4 h-4" />
@@ -625,7 +1055,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                       </div>
 
                       <button
-                        onClick={() => onCompleteRide(activeRide.id)}
+                        onClick={() => handleCompleteRideOfflineAware(activeRide.id)}
                         className="w-full py-3.5 bg-emerald-700 hover:bg-emerald-600 text-white font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/30"
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -914,9 +1344,100 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
           </div>
         )}
+
+        {/* ONGLET 4: HISTORIQUE DES COURSES & REÇUS NUMÉRIQUES CHAUFFEUR */}
+        {activeTab === 'history' && (
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-black text-white">Historique des Courses</h4>
+                <p className="text-xs text-slate-400">Reçus numériques, gains nets et commissions Yoon</p>
+              </div>
+              <span className="px-2 py-1 bg-emerald-950 border border-emerald-500/30 text-emerald-300 font-bold text-xs rounded-xl">
+                {pastDriverRides.length} courses
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {pastDriverRides.map((ride) => (
+                <div
+                  key={ride.id}
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-3.5 space-y-2.5 transition-all shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-xs font-black text-white">#{ride.id}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                        Gain Net : {SenegalPaymentService.formatFCFA(ride.pricing.driverNetEarnings)}
+                      </span>
+                    </div>
+
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {new Date(ride.completedAt || ride.createdAt).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+
+                  {/* Trajet */}
+                  <div className="text-xs space-y-1 text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                      <span className="truncate">{ride.pickup.quarter} ({ride.pickup.name})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+                      <span className="truncate">{ride.destination.quarter}</span>
+                    </div>
+                  </div>
+
+                  {/* Décomposition Financière */}
+                  <div className="bg-slate-950 p-2 rounded-xl text-[11px] flex justify-between items-center text-slate-300 font-mono">
+                    <span>Client a payé: {SenegalPaymentService.formatFCFA(ride.pricing.totalFare)}</span>
+                    <span className="text-rose-400">Commission (15%): -{SenegalPaymentService.formatFCFA(ride.pricing.platformCommission)}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-800/80">
+                    <span className="text-xs text-amber-400">
+                      ★ {ride.ratingGiven || 5.0} • {ride.passenger.fullName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedReceiptRide(ride);
+                        setShowReceiptModal(true);
+                      }}
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>Reçu Numérique</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* MODAL RECHARGE CRÉDIT CHAUFFEUR (WAVE & ORANGE MONEY) */}
+      {/* MODAL SOS URGENCE CHAUFFEUR */}
+      {showSosModal && activeRide && (
+        <SosEmergencyModal
+          activeRide={activeRide}
+          userRole="driver"
+          onClose={() => setShowSosModal(false)}
+        />
+      )}
+
+      {/* MODAL REÇU NUMÉRIQUE CHAUFFEUR */}
+      {showReceiptModal && (selectedReceiptRide || activeRide) && (
+        <DigitalReceiptModal
+          ride={selectedReceiptRide || activeRide!}
+          userRole="driver"
+          onClose={() => {
+            setShowReceiptModal(false);
+            setSelectedReceiptRide(null);
+          }}
+        />
+      )}
       {showRechargeModal && (
         <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
@@ -1161,6 +1682,186 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               >
                 Confirmer le virement
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DIAGNOSTIC & SYNCHRONISATION HORS-LIGNE (LOCALSTORAGE) */}
+      {showOfflineModal && (
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-emerald-950/80 border border-emerald-500/40 rounded-xl text-emerald-400">
+                  <Database className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-100">Gestionnaire Hors-Ligne</h3>
+                  <p className="text-[10px] text-slate-400 font-mono">Stockage LocalStorage & Synchro</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowOfflineModal(false)}
+                className="p-1 text-slate-400 hover:text-white rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* État du Réseau */}
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 font-semibold">État de connexion :</span>
+                <span
+                  className={`px-2 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${
+                    !syncStats.isOnline
+                      ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
+                      : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                  }`}
+                >
+                  {!syncStats.isOnline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
+                  {!syncStats.isOnline ? 'Mode Hors-Ligne' : 'Connecté (En Ligne)'}
+                </span>
+              </div>
+
+              {syncStats.isSimulatedOffline && (
+                <div className="text-[10px] bg-amber-950/60 border border-amber-500/30 p-2 rounded-lg text-amber-200">
+                  ⚠️ <strong>Simulation active</strong> : Les appels réseaux sont volontairement interceptés et stockés dans le localStorage pour test.
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-900">
+                <span className="text-slate-400">Dernière synchro réussie :</span>
+                <span className="text-emerald-400 font-mono font-bold">
+                  {syncStats.lastSyncTime ? syncStats.lastSyncTime : 'Aucune'}
+                </span>
+              </div>
+            </div>
+
+            {/* Détails de la file d'attente LocalStorage */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                <span>File d'attente locale</span>
+                <span className="font-mono text-emerald-400">{syncStats.pendingCount} en attente</span>
+              </h4>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase">Positions GPS</p>
+                  <p className="text-base font-black text-amber-400 font-mono">
+                    {syncStats.pendingLocationsCount}
+                  </p>
+                  <p className="text-[9px] text-slate-500">Coordonnées horodatées</p>
+                </div>
+
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase">Statuts de Course</p>
+                  <p className="text-base font-black text-sky-400 font-mono">
+                    {syncStats.pendingRideStatusCount}
+                  </p>
+                  <p className="text-[9px] text-slate-500">Arrivée, Début, Fin</p>
+                </div>
+              </div>
+
+              {/* Aperçu des éléments stockés */}
+              {driverOfflineSyncService.getPendingQueue().length > 0 ? (
+                <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 max-h-36 overflow-y-auto space-y-1 text-[11px] font-mono">
+                  {driverOfflineSyncService
+                    .getPendingQueue()
+                    .slice(-5)
+                    .reverse()
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-1.5 bg-slate-900/90 rounded border border-slate-800/80 flex items-center justify-between text-slate-300"
+                      >
+                        <div className="truncate pr-2">
+                          <span className="text-emerald-400 font-bold">[{item.type}]</span>{' '}
+                          {item.type === 'gps_location' &&
+                            `Lat: ${item.payload.lat?.toFixed(4)}, Lng: ${item.payload.lng?.toFixed(4)}`}
+                          {item.type === 'ride_status' &&
+                            `Ride ${item.payload.rideId} ➔ ${item.payload.status}`}
+                        </div>
+                        <span className="text-[9px] text-slate-500 shrink-0">
+                          {new Date(item.timestamp).toLocaleTimeString('fr-FR')}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center text-xs text-slate-500">
+                  ✨ Aucun élément en attente. Tout est synchronisé avec Firestore.
+                </div>
+              )}
+            </div>
+
+            {/* Cache Local de la Course */}
+            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+              <span className="text-slate-400">Empreinte mémoire localStorage :</span>
+              <span className="font-mono text-emerald-400 font-bold">
+                ~{(syncStats.storageUsageBytes / 1024).toFixed(2)} KB
+              </span>
+            </div>
+
+            {/* Boutons d'actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleForceSync}
+                disabled={isManualSyncing || !syncStats.isOnline}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/40"
+              >
+                {isManualSyncing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Synchronisation vers Firestore...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>Transmettre & Synchroniser ({syncStats.pendingCount})</span>
+                  </>
+                )}
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleSimulation}
+                  className={`py-2 px-2 text-[11px] font-bold rounded-xl border flex items-center justify-center space-x-1.5 transition-colors ${
+                    syncStats.isSimulatedOffline
+                      ? 'bg-amber-950/80 border-amber-500/50 text-amber-300'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {syncStats.isSimulatedOffline ? (
+                    <>
+                      <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Rétablir le Réseau</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Simuler Perte 4G</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    driverOfflineSyncService.clearQueue();
+                    setOfflineActionToast('🗑️ File d\'attente locale vidée');
+                    setTimeout(() => setOfflineActionToast(null), 2500);
+                  }}
+                  disabled={syncStats.pendingCount === 0}
+                  className="py-2 px-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-rose-400 text-[11px] font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Vider la file</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

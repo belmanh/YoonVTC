@@ -158,6 +158,11 @@ function YoonVtcApp() {
     destination: GeoLocation;
     category: VehicleCategory;
     paymentMethod: PaymentMethod;
+    landmarkHint?: string;
+    voiceNoteUrl?: string;
+    voiceNoteDuration?: number;
+    isFixedPricePackage?: boolean;
+    fixedPackageName?: string;
   }) => {
     const pricing = calculateRidePrice(params.pickup, params.destination, params.category, {
       isRushHour,
@@ -181,6 +186,11 @@ function YoonVtcApp() {
       createdAt: new Date().toISOString(),
       routeCoordinates,
       currentRouteIndex: 0,
+      landmarkHint: params.landmarkHint,
+      voiceNoteUrl: params.voiceNoteUrl,
+      voiceNoteDuration: params.voiceNoteDuration,
+      isFixedPricePackage: params.isFixedPricePackage || pricing.isFixedPricePackage,
+      fixedPackageName: params.fixedPackageName || pricing.fixedPackageName,
     };
 
     setActiveRide(newRide);

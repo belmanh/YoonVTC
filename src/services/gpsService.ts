@@ -1,6 +1,7 @@
 import { GeoLocation, Driver, Ride } from '../types/vtc';
 import { SENEGAL_LOCATIONS } from '../data/senegalData';
 import { updateDriverLocation } from './dbService';
+import { driverOfflineSyncService } from './driverOfflineSyncService';
 
 export interface GpsCoordinates {
   lat: number;
@@ -328,12 +329,26 @@ export class DriverGpsTelemetryEmitter {
       );
     }
 
-    // 2. Emission vers Firestore toutes les 5 secondes (5000ms)
+    // 2. Emission vers Firestore ou mise en mémoire tampon hors-ligne toutes les 5 secondes (5000ms)
     this.intervalId = setInterval(async () => {
       if (!this.isEmitting) return;
 
+      const isConnAvailable = driverOfflineSyncService.isOnline();
+
+      if (!isConnAvailable) {
+        // Enregistrement hors-ligne immédiat dans le localStorage
+        driverOfflineSyncService.queueLocationUpdate(
+          this.driverId,
+          this.currentCoords.lat,
+          this.currentCoords.lng,
+          this.currentCoords.heading
+        );
+        console.log(`[GPS Emitter] Mode Hors-ligne : Coordonnées stockées dans le localStorage (${this.currentCoords.lat.toFixed(4)}, ${this.currentCoords.lng.toFixed(4)})`);
+        return;
+      }
+
       try {
-        // Envoi des coordonnées GPS à Firestore
+        // Envoi des coordonnées GPS à Firestore en ligne
         await updateDriverLocation(
           this.driverId,
           this.currentCoords.lat,
@@ -345,7 +360,14 @@ export class DriverGpsTelemetryEmitter {
           lng: this.currentCoords.lng.toFixed(5),
         });
       } catch (err) {
-        console.warn('[GPS Emitter] Échec envoi Firestore :', err);
+        console.warn('[GPS Emitter] Échec envoi Firestore, basculement sur file hors-ligne :', err);
+        // Sauvegarde de secours en localStorage si l'appel réseau a échoué
+        driverOfflineSyncService.queueLocationUpdate(
+          this.driverId,
+          this.currentCoords.lat,
+          this.currentCoords.lng,
+          this.currentCoords.heading
+        );
       }
     }, intervalMs);
   }

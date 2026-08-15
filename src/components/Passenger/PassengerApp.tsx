@@ -10,17 +10,24 @@ import {
   ShieldAlert,
   Share2,
   Phone,
+  MessageSquare,
   Star,
   Clock,
   ChevronRight,
   Search,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
   QrCode,
   Smartphone,
   Check,
   X,
+  Mic,
+  Volume2,
+  Sparkles,
+  Receipt,
+  FileText,
+  Info,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   GeoLocation,
@@ -29,12 +36,20 @@ import {
   Ride,
   Driver,
   Passenger,
+  PastRideRecord,
+  FixedPricePackage,
 } from '../../types/vtc';
 import { SENEGAL_LOCATIONS, PRICING_RULES } from '../../data/senegalData';
 import { calculateRidePrice } from '../../services/pricingEngine';
 import { SenegalPaymentService } from '../../services/waveOrangeMoneyService';
 import { detectPassengerGpsLocation } from '../../services/gpsService';
 import { DakarMapView } from '../Map/DakarMapView';
+import { VoiceNoteRecorder, VoiceNotePlayerCard } from '../Audio/VoiceNotePlayer';
+import { SosEmergencyModal } from '../Safety/SosEmergencyModal';
+import { ShareTripModal } from '../Safety/ShareTripModal';
+import { DigitalReceiptModal } from '../History/DigitalReceiptModal';
+import { RideHistoryModal } from '../History/RideHistoryModal';
+import { FIXED_PRICE_PACKAGES, findMatchingFixedPackage } from '../../data/fixedPackages';
 import confetti from 'canvas-confetti';
 
 interface PassengerAppProps {
@@ -47,11 +62,180 @@ interface PassengerAppProps {
     destination: GeoLocation;
     category: VehicleCategory;
     paymentMethod: PaymentMethod;
+    landmarkHint?: string;
+    voiceNoteUrl?: string;
+    voiceNoteDuration?: number;
+    isFixedPricePackage?: boolean;
+    fixedPackageName?: string;
   }) => void;
   onCancelRide: () => void;
   onRateRide: (rating: number, comment: string) => void;
   onTriggerSos: () => void;
 }
+
+const APPRECIATION_BADGES = [
+  { id: 'safe', label: 'Conduite sûre', icon: '🛡️' },
+  { id: 'clean', label: 'Véhicule propre', icon: '✨' },
+  { id: 'polite', label: 'Chauffeur courtois', icon: '🤝' },
+  { id: 'punctual', label: 'Ponctuel', icon: '⏱️' },
+  { id: 'music', label: 'Bonne musique', icon: '🎵' },
+  { id: 'ac', label: 'Climatisation parfaite', icon: '❄️' },
+];
+
+const CANCELLATION_REASONS = [
+  { id: 'wait_time', label: "Temps d'attente trop long" },
+  { id: 'driver_not_moving', label: 'Le chauffeur ne se déplace pas vers moi' },
+  { id: 'change_plans', label: "Changement de programme ou d'horaire" },
+  { id: 'wrong_pickup', label: 'Erreur sur le lieu de départ sélectionné' },
+  { id: 'found_other', label: 'J’ai trouvé un autre moyen de transport' },
+];
+
+// Historique de courses initiales
+const INITIAL_PAST_RIDES: PastRideRecord[] = [
+  {
+    id: 'SN-4821',
+    receiptNumber: 'REC-4821-SN',
+    passenger: {
+      id: 'pass_sn_01',
+      fullName: 'Fatou Bintou Sall',
+      phone: '+221 77 412 88 90',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      rating: 4.95,
+      savedPlaces: {},
+    },
+    driver: {
+      id: 'drv_sn_101',
+      fullName: 'Babacar Fall',
+      phone: '+221 77 521 34 89',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      rating: 4.88,
+      totalRides: 1420,
+      status: 'online',
+      currentLocation: { lat: 14.738, lng: -17.502, heading: 45 },
+      vehicle: {
+        id: 'veh_01',
+        brand: 'Peugeot',
+        model: '301 Allure',
+        year: 2022,
+        plateNumber: 'DK-7482-BC',
+        color: 'Gris Métallisé',
+        category: 'standard',
+        seats: 4,
+      },
+      kyc: {
+        cniNumber: '1759198500214',
+        cniFrontUrl: '',
+        cniBackUrl: '',
+        licenseNumber: '',
+        licenseUrl: '',
+        carteGriseUrl: '',
+        assuranceUrl: '',
+        assuranceExpiry: '',
+        controleTechniqueUrl: '',
+        status: 'approved',
+      },
+      walletBalance: 84500,
+      dailyEarnings: 28500,
+      weeklyEarnings: 164000,
+    },
+    pickup: SENEGAL_LOCATIONS[1], // Almadies
+    destination: SENEGAL_LOCATIONS[0], // Plateau
+    category: 'standard',
+    paymentMethod: 'wave',
+    paymentStatus: 'paid',
+    status: 'completed',
+    pricing: {
+      baseFare: 800,
+      distanceCost: 2800,
+      durationCost: 900,
+      tollFee: 0,
+      zoneMultiplier: 1.0,
+      surgeMultiplier: 1.0,
+      totalFare: 4500,
+      platformCommission: 675,
+      driverNetEarnings: 3825,
+    },
+    distanceKm: 14.2,
+    durationMinutes: 26,
+    createdAt: '2026-08-14T08:30:00Z',
+    completedAt: '2026-08-14T08:58:00Z',
+    routeCoordinates: [],
+    currentRouteIndex: 0,
+    landmarkHint: 'Devant la pharmacie des Almadies',
+  },
+  {
+    id: 'SN-3902',
+    receiptNumber: 'REC-3902-SN',
+    passenger: {
+      id: 'pass_sn_01',
+      fullName: 'Fatou Bintou Sall',
+      phone: '+221 77 412 88 90',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      rating: 4.95,
+      savedPlaces: {},
+    },
+    driver: {
+      id: 'drv_sn_102',
+      fullName: 'Modou Diop',
+      phone: '+221 78 345 67 12',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      rating: 4.92,
+      totalRides: 890,
+      status: 'online',
+      currentLocation: { lat: 14.718, lng: -17.465, heading: 120 },
+      vehicle: {
+        id: 'veh_02',
+        brand: 'Toyota',
+        model: 'Corolla Hybrid',
+        year: 2023,
+        plateNumber: 'DK-3319-BN',
+        color: 'Blanc Nacré',
+        category: 'confort',
+        seats: 4,
+      },
+      kyc: {
+        cniNumber: '',
+        cniFrontUrl: '',
+        cniBackUrl: '',
+        licenseNumber: '',
+        licenseUrl: '',
+        carteGriseUrl: '',
+        assuranceUrl: '',
+        assuranceExpiry: '',
+        controleTechniqueUrl: '',
+        status: 'approved',
+      },
+      walletBalance: 124000,
+      dailyEarnings: 42000,
+      weeklyEarnings: 215000,
+    },
+    pickup: SENEGAL_LOCATIONS[0], // Plateau
+    destination: SENEGAL_LOCATIONS[3], // AIBD
+    category: 'confort',
+    paymentMethod: 'orange_money',
+    paymentStatus: 'paid',
+    status: 'completed',
+    pricing: {
+      baseFare: 1500,
+      distanceCost: 14000,
+      durationCost: 1500,
+      tollFee: 3000,
+      zoneMultiplier: 1.0,
+      surgeMultiplier: 1.0,
+      totalFare: 20000,
+      platformCommission: 3000,
+      driverNetEarnings: 17000,
+    },
+    distanceKm: 52.0,
+    durationMinutes: 42,
+    createdAt: '2026-08-13T14:15:00Z',
+    completedAt: '2026-08-13T15:00:00Z',
+    routeCoordinates: [],
+    currentRouteIndex: 0,
+    isFixedPricePackage: true,
+    fixedPackageName: 'Forfait VIP Dakar ↔ AIBD',
+  },
+];
 
 export const PassengerApp: React.FC<PassengerAppProps> = ({
   passenger,
@@ -69,13 +253,28 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wave');
   const [isSearchingLocation, setIsSearchingLocation] = useState<'pickup' | 'destination' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Modals
+
+  // Repère visuel & Note Vocale
+  const [landmarkHint, setLandmarkHint] = useState<string>('');
+  const [voiceNoteData, setVoiceNoteData] = useState<{ url: string; duration: number; textSummary?: string } | null>(null);
+  const [showVoiceRecorderModal, setShowVoiceRecorderModal] = useState<boolean>(false);
+  const [selectedFixedPackage, setSelectedFixedPackage] = useState<FixedPricePackage | null>(null);
+
+  // Modals de sécurité, partage, reçu et historique
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSosModal, setShowSosModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedCancelReason, setSelectedCancelReason] = useState<string>('wait_time');
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
+  const [showTripDetailsModal, setShowTripDetailsModal] = useState<boolean>(false);
+  const [pastRides, setPastRides] = useState<PastRideRecord[]>(INITIAL_PAST_RIDES);
+
+  // Rating & Review State
   const [ratingVal, setRatingVal] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
+  const [selectedBadges, setSelectedBadges] = useState<string[]>(['safe', 'clean', 'polite']);
   const [tipAmount, setTipAmount] = useState<number>(500);
 
   // Géolocalisation GPS Passager
@@ -98,7 +297,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   };
 
   // Estimation du prix actuel
-  const estimate = calculateRidePrice(pickup, destination, category);
+  const estimate = calculateRidePrice(pickup, destination, category, {
+    forceFixedPackage: selectedFixedPackage || undefined,
+  });
 
   const handleSelectLocation = (loc: GeoLocation) => {
     if (isSearchingLocation === 'pickup') {
@@ -108,34 +309,94 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
     }
     setIsSearchingLocation(null);
     setSearchQuery('');
+    setSelectedFixedPackage(null);
+  };
+
+  // Sélection d'un forfait fixe (AIBD / Saly / Diamniadio / Thiès)
+  const handleSelectFixedPackage = (pkg: FixedPricePackage) => {
+    setSelectedFixedPackage(pkg);
+    setCategory(pkg.category);
+
+    const targetDest = SENEGAL_LOCATIONS.find((l) =>
+      l.name.includes(pkg.destinationName) || l.quarter.includes(pkg.destinationName) || pkg.name.includes(l.name)
+    ) || {
+      name: pkg.destinationName,
+      quarter: pkg.destinationName,
+      city: 'Région Thiès',
+      lat: 14.671,
+      lng: -17.0732,
+      popular: true,
+    };
+
+    setDestination(targetDest);
   };
 
   const handleConfirmBooking = () => {
     if (paymentMethod === 'wave' || paymentMethod === 'orange_money') {
       setShowPaymentModal(true);
     } else {
-      onRequestRide({
-        pickup,
-        destination,
-        category,
-        paymentMethod,
-      });
+      executeRideRequest();
     }
   };
 
-  const handlePaymentApproved = () => {
-    setShowPaymentModal(false);
+  const executeRideRequest = () => {
+    const isFixed = Boolean(selectedFixedPackage || estimate.isFixedPricePackage);
     onRequestRide({
       pickup,
       destination,
       category,
       paymentMethod,
+      landmarkHint: landmarkHint.trim() || voiceNoteData?.textSummary || undefined,
+      voiceNoteUrl: voiceNoteData?.url,
+      voiceNoteDuration: voiceNoteData?.duration,
+      isFixedPricePackage: isFixed,
+      fixedPackageName: selectedFixedPackage?.name || estimate.fixedPackageName,
     });
   };
 
+  const handlePaymentApproved = () => {
+    setShowPaymentModal(false);
+    executeRideRequest();
+  };
+
+  const handleConfirmCancellation = () => {
+    setShowCancelModal(false);
+    onCancelRide();
+  };
+
+  const toggleBadge = (badgeId: string) => {
+    setSelectedBadges((prev) =>
+      prev.includes(badgeId) ? prev.filter((b) => b !== badgeId) : [...prev, badgeId]
+    );
+  };
+
   const handleFinishRating = () => {
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
-    onRateRide(ratingVal, ratingComment);
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    const fullFeedback = [
+      ratingComment.trim(),
+      selectedBadges.length > 0
+        ? `Compliments: ${selectedBadges
+            .map((id) => APPRECIATION_BADGES.find((b) => b.id === id)?.label)
+            .filter(Boolean)
+            .join(', ')}`
+        : '',
+      tipAmount > 0 ? `Pourboire: +${tipAmount} FCFA` : '',
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    if (activeRide) {
+      const record: PastRideRecord = {
+        ...activeRide,
+        receiptNumber: `REC-${activeRide.id.replace('SN-', '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+        ratingGiven: ratingVal,
+        feedbackGiven: fullFeedback,
+        tipAmount,
+      };
+      setPastRides((prev) => [record, ...prev]);
+    }
+
+    onRateRide(ratingVal, fullFeedback);
   };
 
   const filteredLocations = SENEGAL_LOCATIONS.filter(
@@ -145,52 +406,55 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
       loc.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const driverPhoneClean = activeRide?.driver?.phone.replace(/[^0-9]/g, '') || '221775213489';
+
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 relative overflow-hidden">
-      {/* Top Header Mobile */}
-      <div className="px-4 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-3">
+    <div className="flex flex-col h-full bg-slate-950 text-slate-100 relative overflow-hidden font-sans select-none">
+      {/* Top Header Uber Premium */}
+      <div className="px-4 py-3 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/80 flex items-center justify-between z-20 shadow-lg shrink-0">
+        <div 
+          onClick={() => setShowHistoryModal(true)}
+          className="flex items-center space-x-3 cursor-pointer group"
+          title="Ouvrir l'historique & le menu de profil"
+        >
           <div className="relative">
             <img
               src={passenger.avatar}
               alt={passenger.fullName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500"
+              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 shadow-md group-hover:scale-105 transition-transform"
             />
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900"></span>
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-900"></span>
           </div>
           <div>
-            <p className="text-xs text-slate-400 font-medium">Passager (Sénégal)</p>
-            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-              {passenger.fullName}
-              <span className="text-[11px] text-amber-400 font-semibold">★ {passenger.rating}</span>
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">{passenger.fullName}</h3>
+              <span className="px-1.5 py-0.2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-[10px] rounded-full flex items-center gap-0.5">
+                ★ {passenger.rating}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium">Passager Yoon VIP • Dakar ➔</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Bouton SOS d'urgence */}
           {activeRide && (
             <button
               onClick={() => setShowSosModal(true)}
-              className="px-2.5 py-1.5 bg-rose-600/20 border border-rose-500/40 text-rose-400 rounded-lg text-xs font-bold flex items-center space-x-1 hover:bg-rose-600/30 transition-colors shadow-sm animate-pulse"
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black flex items-center space-x-1.5 transition-all shadow-md shadow-rose-900/50 active:scale-95 animate-pulse"
               title="Urgence SOS"
             >
-              <ShieldAlert className="w-4 h-4 text-rose-500" />
+              <ShieldAlert className="w-3.5 h-3.5 fill-current" />
               <span>SOS</span>
             </button>
           )}
-
-          <div className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-mono text-emerald-400 font-bold">
-            {paymentMethod === 'wave' && '💙 Wave Pay'}
-            {paymentMethod === 'orange_money' && '🧡 Orange Money'}
-            {paymentMethod === 'cash' && '💵 Cash FCFA'}
-          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 relative flex flex-col overflow-hidden">
-        {/* Leaflet / Google Map View */}
-        <div className="w-full h-1/2 min-h-[220px] relative">
+      {/* Map & Panels Area (Map in background, card floating at bottom) */}
+      <div className="flex-1 relative overflow-hidden flex flex-col justify-end">
+        {/* Map View - full-screen background */}
+        <div className="absolute inset-0 z-0">
           <DakarMapView
             drivers={drivers}
             selectedPickup={pickup}
@@ -201,46 +465,23 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           />
         </div>
 
-        {/* Dynamic Bottom Sheet / Panels */}
-        <div className="w-full flex-1 bg-slate-900 border-t border-slate-800 rounded-t-2xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between">
+        {/* Dynamic Glassmorphic Bottom Card floating on top of the Map */}
+        <div className="w-full max-h-[85%] bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800/90 rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between">
           
-          {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION) */}
+          {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION DU TRAJET) */}
           {!activeRide && (
-            <div className="space-y-4">
-              {/* Bouton Rapide Détection GPS Passager */}
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={handleDetectGps}
-                  disabled={isLocatingGps}
-                  className="flex-1 py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 flex items-center justify-center space-x-2 transition-all shadow-sm active:scale-[0.99]"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span>{isLocatingGps ? 'Détection satellite en cours...' : '📍 Détecter ma position GPS exacte (Dakar)'}</span>
-                </button>
-              </div>
-
-              {gpsFeedback && (
-                <div className="px-3 py-2 bg-emerald-950/80 border border-emerald-500/50 rounded-lg text-xs text-emerald-200 flex items-center justify-between animate-fadeIn">
-                  <span className="truncate">{gpsFeedback}</span>
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
-                </div>
-              )}
-
-              {/* Sélecteurs de Trajet (Départ / Destination) */}
-              <div className="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                {/* Départ */}
+            <div className="space-y-3.5">
+              {/* Trajet : Saisie Départ et Destination */}
+              <div className="space-y-2 bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800/50">
+                {/* Point de Départ */}
                 <div
                   onClick={() => setIsSearchingLocation('pickup')}
-                  className="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 cursor-pointer transition-colors"
+                  className="flex items-center space-x-3 p-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
                 >
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20 shrink-0"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20 shrink-0"></div>
                   <div className="flex-1 truncate">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Point de départ</p>
-                    <p className="text-xs font-semibold text-slate-100 truncate">{pickup.name}</p>
+                    <p className="text-[9px] uppercase font-bold text-emerald-400 tracking-wider">Point de départ</p>
+                    <p className="text-xs font-bold text-slate-100 truncate">{pickup.name}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-500" />
                 </div>
@@ -248,68 +489,66 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 {/* Destination */}
                 <div
                   onClick={() => setIsSearchingLocation('destination')}
-                  className="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 cursor-pointer transition-colors"
+                  className="flex items-center space-x-3 p-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
                 >
-                  <div className="w-3 h-3 rounded-full bg-rose-500 ring-4 ring-rose-500/20 shrink-0"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/20 shrink-0"></div>
                   <div className="flex-1 truncate">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Où allez-vous ? (Destination)</p>
-                    <p className="text-xs font-semibold text-slate-100 truncate">{destination.name}</p>
+                    <p className="text-[9px] uppercase font-bold text-rose-400 tracking-wider">Où allez-vous ?</p>
+                    <p className="text-xs font-bold text-slate-100 truncate">{destination.name}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-500" />
                 </div>
               </div>
 
-              {/* Métriques du trajet estimé */}
-              <div className="flex items-center justify-between text-xs px-2 text-slate-300">
-                <span className="flex items-center gap-1">
-                  <Navigation className="w-3.5 h-3.5 text-emerald-400" />
-                  Distance: <strong className="text-slate-100">{estimate.distanceKm} km</strong>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-sky-400" />
-                  Durée: <strong className="text-slate-100">{estimate.durationMinutes} min</strong>
-                </span>
-                {estimate.breakdown.tollFee > 0 && (
-                  <span className="text-[11px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-medium border border-amber-500/30">
-                    Péage: +{estimate.breakdown.tollFee} F
-                  </span>
-                )}
-              </div>
-
-              {/* Sélection de la Gamme de Véhicules */}
+              {/* Sélection des Gammes de Véhicules en Ligne Horizontale Défilante */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  Gamme de véhicule
-                </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Gamme de véhicule
+                  </label>
+                  {/* Bouton rapide d'affichage des détails */}
+                  <button
+                    type="button"
+                    onClick={() => setShowTripDetailsModal(true)}
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                    <span>Détails & Options</span>
+                  </button>
+                </div>
+                
+                {/* Conteneur Horizontal Scrollable sans barre visible (les 4 types sur une seule ligne) */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1.5 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {(Object.keys(PRICING_RULES) as VehicleCategory[]).map((catKey) => {
                     const rule = PRICING_RULES[catKey];
-                    const catEstimate = calculateRidePrice(pickup, destination, catKey);
+                    const catEstimate = calculateRidePrice(pickup, destination, catKey, {
+                      forceFixedPackage: selectedFixedPackage || undefined,
+                    });
                     const isSelected = category === catKey;
 
                     return (
                       <div
                         key={catKey}
                         onClick={() => setCategory(catKey)}
-                        className={`p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                        className={`p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between shrink-0 w-36 snap-start active:scale-[0.98] ${
                           isSelected
-                            ? 'bg-emerald-950/40 border-emerald-500 ring-1 ring-emerald-500 text-slate-100 shadow-md'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-emerald-950/40 border-emerald-400 ring-1 ring-emerald-400 text-white shadow-lg shadow-emerald-950/40'
+                            : 'bg-slate-950/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center space-x-1.5">
-                            {catKey === 'eco' && <Car className="w-4 h-4 text-emerald-400" />}
-                            {catKey === 'standard' && <CarFront className="w-4 h-4 text-sky-400" />}
-                            {catKey === 'confort' && <Crown className="w-4 h-4 text-amber-400" />}
-                            {catKey === 'interurbain' && <MapPin className="w-4 h-4 text-indigo-400" />}
-                            <span className="text-xs font-bold">{rule.name.split(' ')[1] || rule.name}</span>
+                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-emerald-400" />}
+                            {catKey === 'standard' && <CarFront className="w-3.5 h-3.5 text-sky-400" />}
+                            {catKey === 'confort' && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+                            {catKey === 'interurbain' && <MapPin className="w-3.5 h-3.5 text-indigo-400" />}
+                            <span className="text-[11px] font-bold text-slate-100">{rule.name.split(' ')[1] || rule.name}</span>
                           </div>
                         </div>
 
-                        <div className="flex items-baseline justify-between mt-1">
-                          <span className="text-[10px] text-slate-400">{rule.capacity}</span>
-                          <span className={`text-xs font-extrabold ${isSelected ? 'text-emerald-400' : 'text-slate-200'}`}>
+                        <div className="flex flex-col mt-1">
+                          <span className="text-[9px] text-slate-400">{rule.capacity}</span>
+                          <span className={`text-xs font-black mt-0.5 ${isSelected ? 'text-emerald-400' : 'text-slate-200'}`}>
                             {SenegalPaymentService.formatFCFA(catEstimate.breakdown.totalFare)}
                           </span>
                         </div>
@@ -319,427 +558,585 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 </div>
               </div>
 
-              {/* Sélection du Moyen de Paiement */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  Moyen de paiement
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('wave')}
-                    className={`py-2 px-2 rounded-xl border flex flex-col items-center justify-center text-xs font-semibold transition-all ${
-                      paymentMethod === 'wave'
-                        ? 'bg-sky-950/40 border-sky-400 text-sky-300 ring-1 ring-sky-400'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <Smartphone className="w-4 h-4 mb-1 text-sky-400" />
-                    <span>Wave Sénégal</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('orange_money')}
-                    className={`py-2 px-2 rounded-xl border flex flex-col items-center justify-center text-xs font-semibold transition-all ${
-                      paymentMethod === 'orange_money'
-                        ? 'bg-orange-950/40 border-orange-400 text-orange-300 ring-1 ring-orange-400'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4 mb-1 text-orange-400" />
-                    <span>Orange Money</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('cash')}
-                    className={`py-2 px-2 rounded-xl border flex flex-col items-center justify-center text-xs font-semibold transition-all ${
-                      paymentMethod === 'cash'
-                        ? 'bg-emerald-950/40 border-emerald-400 text-emerald-300 ring-1 ring-emerald-400'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <Banknote className="w-4 h-4 mb-1 text-emerald-400" />
-                    <span>Espèces (Cash)</span>
-                  </button>
-                </div>
+              {/* Résumé épuré de l'itinéraire */}
+              <div className="flex items-center justify-between text-xs px-1 text-slate-400 py-1 border-t border-slate-800/40 mt-1">
+                <span className="flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Distance : <strong>{estimate.distanceKm} km</strong> (~{estimate.durationMinutes} min)</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowTripDetailsModal(true)}
+                  className="text-emerald-400 font-bold hover:underline"
+                >
+                  Voir les détails ➔
+                </button>
               </div>
 
-              {/* Bouton de Commande */}
+              {/* Bouton de Commande Uber/Yango Style */}
               <button
                 type="button"
                 onClick={handleConfirmBooking}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2 transition-all"
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer"
               >
-                <span>Commander {PRICING_RULES[category].name}</span>
-                <span className="bg-emerald-700/80 px-2 py-0.5 rounded text-xs">
+                <span>Commander Yoon</span>
+                <span className="bg-slate-950/20 px-2 py-0.5 rounded-lg text-xs font-bold text-slate-950">
                   {SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}
                 </span>
               </button>
             </div>
           )}
 
-          {/* ÉTAT 2: RECHERCHE D'UN CHAUFFEUR EN COURS */}
+          {/* ÉTAT 2: RADAR ACTIF - RECHERCHE D'UN CHAUFFEUR EN COURS */}
           {activeRide && activeRide.status === 'searching_driver' && (
-            <div className="py-4 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="relative w-16 h-16 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-ping"></div>
-                <div className="w-14 h-14 bg-emerald-600/20 border border-emerald-500 rounded-full flex items-center justify-center text-emerald-400">
-                  <Navigation className="w-7 h-7 animate-spin" />
+            <div className="py-6 flex flex-col items-center justify-center text-center space-y-5">
+              {/* Animation Radar / Sonar */}
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-emerald-500/30 animate-ping"></div>
+                <div className="absolute inset-2 rounded-full border border-emerald-500/40 animate-pulse"></div>
+
+                {/* Icône Centrale Voiture */}
+                <div className="relative w-14 h-14 bg-slate-950 border-2 border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 shadow-2xl z-10">
+                  <Car className="w-7 h-7 text-emerald-400 animate-pulse" />
                 </div>
               </div>
+
               <div>
-                <h4 className="font-bold text-base text-slate-100">Recherche de chauffeurs à proximité...</h4>
-                <p className="text-xs text-slate-400 mt-1">
-                  Envoi de la requête aux chauffeurs {activeRide.category.toUpperCase()} de {pickup.quarter}
+                <h4 className="font-black text-base text-white tracking-tight">Recherche d'un chauffeur Yoon...</h4>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                  Envoi de la requête aux chauffeurs <strong className="text-emerald-400">{activeRide.category.toUpperCase()}</strong> disponibles à {pickup.quarter}.
                 </p>
+                {activeRide.landmarkHint && (
+                  <p className="text-xs text-emerald-300 font-mono mt-1">📍 Repère transmis : "{activeRide.landmarkHint}"</p>
+                )}
               </div>
+
               <button
-                onClick={onCancelRide}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-rose-400 border border-rose-500/30 text-xs font-semibold rounded-lg"
+                onClick={() => setShowCancelModal(true)}
+                className="px-5 py-2.5 bg-slate-950 hover:bg-slate-800 text-rose-400 border border-rose-500/40 text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
               >
                 Annuler la recherche
               </button>
             </div>
           )}
 
-          {/* ÉTAT 3: CHAUFFEUR ASSIGNÉ / EN ROUTE / EN COURSE */}
+          {/* ÉTAT 3: CHAUFFEUR ASSIGNÉ / EN ROUTE / EN COURSE (PRIORITÉ APPEL VOCAL DIRECT) */}
           {activeRide && (activeRide.status === 'driver_assigned' || activeRide.status === 'driver_arrived' || activeRide.status === 'in_progress') && activeRide.driver && (
-            <div className="space-y-4">
-              {/* Bannière de Statut */}
-              <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-emerald-400">
-                      {activeRide.status === 'driver_assigned' && 'Chauffeur en approche'}
-                      {activeRide.status === 'driver_arrived' && 'Chauffeur arrivé au point de départ'}
-                      {activeRide.status === 'in_progress' && 'Course en cours vers la destination'}
-                    </p>
-                    <p className="text-xs font-bold text-slate-200">
-                      {activeRide.status === 'driver_assigned' && 'Arrivée estimée dans ~3 min'}
-                      {activeRide.status === 'driver_arrived' && 'Veuillez monter à bord du véhicule'}
-                      {activeRide.status === 'in_progress' && `Arrivée à ${destination.quarter} (~${estimate.durationMinutes} min)`}
-                    </p>
+            <div className="space-y-3.5">
+              {/* Barre de Progression de la Course */}
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-wider text-emerald-400">
+                        {activeRide.status === 'driver_assigned' && 'Chauffeur en approche'}
+                        {activeRide.status === 'driver_arrived' && 'Chauffeur arrivé sur place'}
+                        {activeRide.status === 'in_progress' && 'En route vers la destination'}
+                      </p>
+                      <p className="text-xs font-bold text-white">
+                        {activeRide.status === 'driver_assigned' && 'Arrivée estimée dans ~3 min'}
+                        {activeRide.status === 'driver_arrived' && 'Votre véhicule vous attend au départ'}
+                        {activeRide.status === 'in_progress' && `Arrivée à ${destination.quarter} (~${estimate.durationMinutes} min)`}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-1.5">
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 border border-slate-700"
-                    title="Partager le trajet"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <a
-                    href={`tel:${activeRide.driver.phone}`}
-                    className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg"
-                    title="Appeler le chauffeur"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </a>
+                  <span className="px-2 py-1 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold">
+                    #{activeRide.id}
+                  </span>
                 </div>
               </div>
 
-              {/* Fiche Chauffeur & Véhicule */}
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={activeRide.driver.avatar}
-                    alt={activeRide.driver.fullName}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500"
-                  />
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-100">{activeRide.driver.fullName}</h4>
-                    <p className="text-xs text-slate-400 font-medium">
-                      {activeRide.driver.vehicle.brand} {activeRide.driver.vehicle.model} • {activeRide.driver.vehicle.color}
-                    </p>
-                    <div className="flex items-center space-x-2 mt-0.5">
-                      <span className="text-xs text-amber-400 font-bold flex items-center gap-0.5">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {activeRide.driver.rating.toFixed(2)}
-                      </span>
-                      <span className="text-[11px] text-slate-500">({activeRide.driver.totalRides} courses)</span>
+              {/* Carte Profil Chauffeur & Véhicule */}
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={activeRide.driver.avatar}
+                      alt={activeRide.driver.fullName}
+                      className="w-11 h-11 rounded-full object-cover border-2 border-emerald-400 shadow-md"
+                    />
+                    <div>
+                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span>{activeRide.driver.fullName}</span>
+                        <span className="text-amber-400 font-mono text-[10px]">★ {activeRide.driver.rating}</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-300">
+                        {activeRide.driver.vehicle.brand} {activeRide.driver.vehicle.model} ({activeRide.driver.vehicle.color})
+                      </p>
+                      <p className="text-[10px] font-mono text-emerald-400 font-bold">
+                        Plaque: {activeRide.driver.vehicle.plateNumber}
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Plaque d'immatriculation Sénégalaise */}
-                <div className="text-right">
-                  <div className="px-2.5 py-1 bg-slate-900 border-2 border-slate-700 rounded-md font-mono text-xs font-black text-amber-400 tracking-wider shadow-inner">
-                    {activeRide.driver.vehicle.plateNumber}
-                  </div>
-                  <span className="text-[10px] text-slate-400 uppercase font-semibold">Sénégal 🇸🇳</span>
-                </div>
+                {/* Note Vocale / Repère joint si présent */}
+                {(activeRide.voiceNoteUrl || activeRide.landmarkHint) && (
+                  <VoiceNotePlayerCard
+                    audioUrl={activeRide.voiceNoteUrl}
+                    duration={activeRide.voiceNoteDuration || 5}
+                    landmarkHint={activeRide.landmarkHint}
+                    senderName="Vous (Passager)"
+                    role="passenger"
+                  />
+                )}
               </div>
 
-              {/* Détail Prix & Méthode */}
-              <div className="flex items-center justify-between text-xs px-2 text-slate-300">
-                <span>Total à régler :</span>
-                <span className="font-bold text-emerald-400 text-sm">
-                  {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}
-                </span>
+              {/* PRIORITÉ ABSOLUE : BOUTONS D'APPEL DIRECT ET VOCAL */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* 1. Appel Téléphonique Direct */}
+                <a
+                  href={`tel:${activeRide.driver.phone}`}
+                  className="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/40 active:scale-95 text-xs transition-transform"
+                >
+                  <Phone className="w-4 h-4 fill-current animate-bounce" />
+                  <span>Appel Direct ({activeRide.driver.phone})</span>
+                </a>
+
+                {/* 2. Appel / Message WhatsApp Direct */}
+                <a
+                  href={`https://wa.me/${driverPhoneClean}?text=${encodeURIComponent(`Bonjour ${activeRide.driver.fullName}, je suis votre passager pour la course #${activeRide.id} Yoon VTC.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40 active:scale-95 text-xs transition-transform"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>Appel WhatsApp</span>
+                </a>
+              </div>
+
+              {/* Boutons Sécurité : SOS, Partager Trajet, Annuler */}
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSosModal(true)}
+                  className="py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 shadow active:scale-95 text-[11px]"
+                >
+                  <ShieldAlert className="w-4 h-4 fill-current" />
+                  <span>SOS Sécurité</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(true)}
+                  className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-xl flex items-center justify-center space-x-1.5 border border-slate-700 active:scale-95 text-[11px]"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Partager</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(true)}
+                  className="py-2.5 bg-rose-950/40 hover:bg-rose-950/60 text-rose-400 font-bold rounded-xl flex items-center justify-center space-x-1.5 border border-rose-500/30 active:scale-95 text-[11px]"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Annuler</span>
+                </button>
               </div>
             </div>
           )}
 
-          {/* ÉTAT 4: COURSE TERMINÉE (NOTATION & REÇU NUMÉRIQUE) */}
+          {/* ÉTAT 4: COURSE TERMINÉE (NOTATION 5 ÉTOILES, BADGES & REÇU NUMÉRIQUE) */}
           {activeRide && activeRide.status === 'completed' && (
-            <div className="space-y-4 text-center py-2">
-              <div className="w-12 h-12 bg-emerald-500/20 border border-emerald-500 rounded-full flex items-center justify-center text-emerald-400 mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="space-y-3.5 text-center py-1">
+              <div className="w-12 h-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 mx-auto shadow-lg">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
               </div>
+              
               <div>
-                <h4 className="font-bold text-base text-slate-100">Vous êtes arrivé à destination !</h4>
-                <p className="text-xs text-slate-400">Merci d’avoir voyagé avec Yoon VTC Sénégal</p>
+                <h4 className="font-black text-lg text-white">Trajet terminé avec succès !</h4>
+                <p className="text-xs text-slate-300">Merci d’avoir voyagé avec Yoon VTC Sénégal</p>
               </div>
 
-              {/* Reçu Numérique */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-left space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Prise en charge</span>
-                  <span>{activeRide.pricing.baseFare} FCFA</span>
+              {/* Bouton Reçu Numérique Officiel */}
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-400">Total réglé ({activeRide.paymentMethod.toUpperCase()}) :</span>
+                  <span className="font-black text-emerald-400 text-sm font-mono">
+                    {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Distance ({activeRide.distanceKm} km)</span>
-                  <span>{activeRide.pricing.distanceCost} FCFA</span>
-                </div>
-                {activeRide.pricing.tollFee > 0 && (
-                  <div className="flex justify-between text-amber-400">
-                    <span>Péage Autoroute de l'Avenir</span>
-                    <span>+{activeRide.pricing.tollFee} FCFA</span>
-                  </div>
-                )}
-                <div className="border-t border-slate-800 pt-1.5 flex justify-between font-bold text-sm text-slate-100">
-                  <span>Total payé ({activeRide.paymentMethod.toUpperCase()})</span>
-                  <span className="text-emerald-400">{SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}</span>
-                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptModal(true)}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <span>Afficher le Reçu Numérique & Détails</span>
+                </button>
               </div>
 
-              {/* Évaluation Chauffeur */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-slate-300">Notez votre chauffeur {activeRide.driver?.fullName}</p>
-                <div className="flex justify-center space-x-2">
+              {/* Évaluation 5 Étoiles Interactive */}
+              <div className="space-y-2.5">
+                <p className="text-xs font-bold text-slate-200">
+                  Notez votre expérience avec <strong className="text-emerald-400">{activeRide.driver?.fullName}</strong>
+                </p>
+                
+                <div className="flex justify-center items-center space-x-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
                       onClick={() => setRatingVal(star)}
-                      className="p-1 text-slate-500 hover:text-amber-400 transition-colors"
+                      className="p-1 text-slate-600 hover:text-amber-400 transition-transform active:scale-125"
                     >
                       <Star
-                        className={`w-6 h-6 ${star <= ratingVal ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`}
+                        className={`w-7 h-7 ${star <= ratingVal ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`}
                       />
                     </button>
                   ))}
                 </div>
 
-                <div className="flex justify-center space-x-2 pt-1">
-                  {[0, 500, 1000, 2000].map((amount) => (
-                    <button
-                      key={amount}
-                      onClick={() => setTipAmount(amount)}
-                      className={`px-2.5 py-1 text-[11px] rounded-lg border font-medium ${
-                        tipAmount === amount
-                          ? 'bg-emerald-500 text-white border-emerald-400'
-                          : 'bg-slate-900 text-slate-400 border-slate-800'
-                      }`}
-                    >
-                      {amount === 0 ? 'Pas de pourboire' : `+${amount} F pourboire`}
-                    </button>
-                  ))}
+                {/* Badges d'Appréciation Rapides */}
+                <div className="space-y-1 text-left">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Qu'avez-vous particulièrement apprécié ?</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {APPRECIATION_BADGES.map((badge) => {
+                      const isSelected = selectedBadges.includes(badge.id);
+                      return (
+                        <button
+                          key={badge.id}
+                          type="button"
+                          onClick={() => toggleBadge(badge.id)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all border ${
+                            isSelected
+                              ? 'bg-emerald-950/60 border-emerald-400 text-emerald-300 shadow-sm'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <span>{badge.icon}</span>
+                          <span>{badge.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Pourboire pour le chauffeur */}
+                <div className="space-y-1 text-left">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ajouter un pourboire au chauffeur</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[0, 500, 1000, 2000].map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        onClick={() => setTipAmount(amount)}
+                        className={`py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                          tipAmount === amount
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        {amount === 0 ? 'Aucun' : `+${amount} F`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Commentaire optionnel */}
+                <textarea
+                  rows={2}
+                  placeholder="Laisser un compliment ou un commentaire pour le chauffeur..."
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"
+                ></textarea>
               </div>
 
               <button
                 onClick={handleFinishRating}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30"
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.99] transition-all cursor-pointer"
               >
-                Envoyer l'évaluation & Terminer
+                Envoyer mon avis & Clôturer
               </button>
             </div>
           )}
         </div>
       </div>
 
+      {/* MODAL SOS / URGENCE */}
+      {showSosModal && activeRide && (
+        <SosEmergencyModal
+          activeRide={activeRide}
+          userRole="passenger"
+          onClose={() => setShowSosModal(false)}
+        />
+      )}
+
+      {/* MODAL PARTAGER MON TRAJET */}
+      {showShareModal && activeRide && (
+        <ShareTripModal
+          activeRide={activeRide}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* MODAL REÇU NUMÉRIQUE */}
+      {showReceiptModal && activeRide && (
+        <DigitalReceiptModal
+          ride={activeRide}
+          userRole="passenger"
+          onClose={() => setShowReceiptModal(false)}
+        />
+      )}
+
+      {/* MODAL DÉTAILS ET OPTIONS DU TRAJET */}
+      {showTripDetailsModal && (
+        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-end animate-fadeIn">
+          <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Info className="w-5 h-5 text-emerald-400" />
+                Détails du trajet & Tarifs
+              </h3>
+              <button
+                onClick={() => setShowTripDetailsModal(false)}
+                className="p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Itinerary Metrics */}
+            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-800/80">
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">Distance totale</p>
+                <p className="text-sm font-black text-white">{estimate.distanceKm} km</p>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">Durée estimée</p>
+                <p className="text-sm font-black text-white">{estimate.durationMinutes} min</p>
+              </div>
+            </div>
+
+            {/* Fare Breakdown Details */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Détails de la tarification ({category.toUpperCase()})</h4>
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/85 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Prise en charge de base</span>
+                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.baseFare)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Coût de la distance ({estimate.distanceKm} km)</span>
+                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.distanceCost)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Coût de la durée (~{estimate.durationMinutes} min)</span>
+                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.durationCost)}</span>
+                </div>
+                {estimate.breakdown.tollFee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Péage Autoroute Dakar inclus</span>
+                    <span className="font-semibold text-emerald-400">+{SenegalPaymentService.formatFCFA(estimate.breakdown.tollFee)}</span>
+                  </div>
+                )}
+                <div className="border-t border-slate-800/60 pt-2 flex justify-between font-bold text-sm">
+                  <span className="text-white">Total estimé ({paymentMethod.toUpperCase()})</span>
+                  <span className="text-emerald-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Forfaits Fixes Interurbains & VIP optionnels */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Forfaits fixes directs</h4>
+                <span className="text-[9px] text-emerald-400">péage inclus</span>
+              </div>
+              <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {FIXED_PRICE_PACKAGES.map((pkg) => {
+                  const isSelected = selectedFixedPackage?.id === pkg.id;
+                  return (
+                    <button
+                      key={pkg.id}
+                      type="button"
+                      onClick={() => {
+                        handleSelectFixedPackage(pkg);
+                        setShowTripDetailsModal(false);
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border flex flex-col items-start ${
+                        isSelected
+                          ? 'bg-emerald-950/80 border-emerald-400 text-white ring-1 ring-emerald-400 shadow-md'
+                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <span>{pkg.name.replace('Forfait ', '')}</span>
+                      <span className="text-amber-400 font-mono mt-0.5">
+                        {SenegalPaymentService.formatFCFA(pkg.priceFcfa)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Note Vocale & Repère */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Note Vocale & Repère Chauffeur</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowVoiceRecorderModal(true)}
+                  className="px-2 py-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/30 rounded-lg text-emerald-300 text-[10px] font-bold flex items-center gap-1"
+                >
+                  <Mic className="w-3 h-3" />
+                  <span>{voiceNoteData ? 'Modifier vocal' : '+ Note vocale'}</span>
+                </button>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Ex: Devant la Brioche Dorée, face à la mosquée ou portail vert..."
+                value={landmarkHint}
+                onChange={(e) => setLandmarkHint(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-emerald-400"
+              />
+
+              {voiceNoteData && (
+                <div className="p-2 bg-emerald-950/40 border border-emerald-500/20 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <div>
+                      <p className="text-xs font-bold text-emerald-300">Message vocal joint ({voiceNoteData.duration}s)</p>
+                      <p className="text-[10px] text-slate-400 truncate max-w-xs">{voiceNoteData.textSummary}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceNoteData(null)}
+                    className="p-1 text-rose-400 hover:text-rose-300"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Action */}
+            <button
+              onClick={() => setShowTripDetailsModal(false)}
+              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
+            >
+              Fermer et retourner à l'écran principal
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL HISTORIQUE DES COURSES */}
+      {showHistoryModal && (
+        <RideHistoryModal
+          pastRides={pastRides}
+          userRole="passenger"
+          onClose={() => setShowHistoryModal(false)}
+        />
+      )}
+
       {/* MODAL RECHERCHE DE LIEU */}
       {isSearchingLocation && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-sm text-slate-100">
-              {isSearchingLocation === 'pickup' ? 'Choisir le point de départ' : 'Choisir la destination'}
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl z-50 p-4 flex flex-col animate-fadeIn">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 className="text-sm font-bold text-white">
+              {isSearchingLocation === 'pickup' ? 'Définir le lieu de départ' : 'Définir la destination'}
             </h3>
             <button
               onClick={() => setIsSearchingLocation(null)}
               className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="relative mb-3">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <div className="relative my-3">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input
               type="text"
-              placeholder="Rechercher un quartier, rue ou lieu (ex: Almadies, AIBD, Plateau...)"
+              placeholder="Rechercher un quartier ou un lieu à Dakar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
               autoFocus
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1.5">
+          <div className="flex-1 overflow-y-auto space-y-1">
             {filteredLocations.map((loc, idx) => (
               <div
                 key={idx}
                 onClick={() => handleSelectLocation(loc)}
-                className="p-3 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 rounded-xl cursor-pointer flex items-center space-x-3 transition-colors"
+                className="p-2.5 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800 cursor-pointer flex items-center space-x-3 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 truncate">
-                  <p className="text-xs font-bold text-slate-200 truncate">{loc.name}</p>
-                  <p className="text-[11px] text-slate-400">
-                    {loc.quarter}, {loc.city}
-                  </p>
+                  <p className="text-xs font-bold text-slate-100 truncate">{loc.name}</p>
+                  <p className="text-[10px] text-slate-400 truncate">{loc.quarter} • {loc.city}</p>
                 </div>
-                {loc.popular && (
-                  <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                    Populaire
-                  </span>
-                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* MODAL PAIEMENT WAVE / ORANGE MONEY SIMULATION */}
-      {showPaymentModal && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center shadow-2xl space-y-4">
-            {paymentMethod === 'wave' ? (
-              <>
-                <div className="w-12 h-12 bg-sky-500/20 border border-sky-400 text-sky-400 rounded-full flex items-center justify-center mx-auto">
-                  <Smartphone className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-sky-400">Paiement Sécurisé Wave Sénégal</h3>
-                <p className="text-xs text-slate-300">
-                  Scannez le QR Code ou validez la notification push Wave sur votre téléphone (+221 77/78/76/70).
-                </p>
-                <div className="p-4 bg-white rounded-xl inline-block shadow-lg mx-auto">
-                  <QrCode className="w-28 h-28 text-slate-950" />
-                </div>
-                <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs text-slate-300">
-                  Montant à débiter : <strong className="text-sky-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</strong>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-12 h-12 bg-orange-500/20 border border-orange-400 text-orange-400 rounded-full flex items-center justify-center mx-auto">
-                  <CreditCard className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-orange-400">Paiement Orange Money Sénégal</h3>
-                <p className="text-xs text-slate-300">
-                  Composez le <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-400 font-mono">#144#391#</code> pour obtenir votre code d'autorisation OTP.
-                </p>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Entrez le code OTP reçu par SMS"
-                    defaultValue="849201"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-center text-sm font-mono tracking-widest text-orange-400"
-                  />
-                  <div className="text-[11px] text-slate-400">
-                    Montant : <strong className="text-orange-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</strong>
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div className="flex space-x-2 pt-2">
+      {/* MODAL ANNULATION DE COURSE AVEC MOTIFS */}
+      {showCancelModal && (
+        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-center items-center animate-fadeIn">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
+                Annulation de la course
+              </h3>
               <button
-                onClick={() => setShowPaymentModal(false)}
-                className="flex-1 py-2.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+                onClick={() => setShowCancelModal(false)}
+                className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
               >
-                Annuler
-              </button>
-              <button
-                onClick={handlePaymentApproved}
-                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-1.5"
-              >
-                <Check className="w-4 h-4" /> Confirmer le paiement
+                <X className="w-4 h-4" />
               </button>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* MODAL SOS URGENCE SÉNÉGAL */}
-      {showSosModal && (
-        <div className="absolute inset-0 bg-rose-950/90 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-rose-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
-            <div className="w-14 h-14 bg-rose-600/20 border border-rose-500 rounded-full flex items-center justify-center text-rose-500 mx-auto animate-bounce">
-              <AlertTriangle className="w-8 h-8" />
-            </div>
-            <h3 className="text-base font-bold text-rose-400">Centre d'Alerte SOS & Sécurité</h3>
             <p className="text-xs text-slate-300">
-              Votre position GPS en temps réel sera immédiatement transmise aux services de secours et à vos contacts d'urgence.
+              Veuillez nous indiquer la raison de l'annulation pour nous aider à améliorer la qualité du service à Dakar :
             </p>
 
             <div className="space-y-2">
-              <a
-                href="tel:17"
-                className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2"
-              >
-                <Phone className="w-4 h-4" /> <span>Police Secours (17) / Gendarmerie (800 00 20 20)</span>
-              </a>
+              {CANCELLATION_REASONS.map((reason) => (
+                <div
+                  key={reason.id}
+                  onClick={() => setSelectedCancelReason(reason.id)}
+                  className={`p-2.5 rounded-xl border cursor-pointer text-xs font-medium transition-all flex items-center justify-between ${
+                    selectedCancelReason === reason.id
+                      ? 'bg-rose-950/40 border-rose-500 text-rose-200'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <span>{reason.label}</span>
+                  {selectedCancelReason === reason.id && <Check className="w-4 h-4 text-rose-400" />}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex space-x-2 pt-2">
               <button
-                onClick={() => {
-                  onTriggerSos();
-                  setShowSosModal(false);
-                }}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs font-semibold rounded-xl border border-rose-500/30"
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
               >
-                Diffuser Alerte Silencieuse au Support Yoon
+                Garder la course
+              </button>
+              <button
+                onClick={handleConfirmCancellation}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-900/30"
+              >
+                Confirmer l’annulation
               </button>
             </div>
-
-            <button
-              onClick={() => setShowSosModal(false)}
-              className="text-xs text-slate-400 hover:text-slate-200"
-            >
-              Fermer
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL PARTAGE DE TRAJET */}
-      {showShareModal && (
-        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center shadow-2xl space-y-4">
-            <div className="w-12 h-12 bg-emerald-500/20 border border-emerald-400 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
-              <Share2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-100">Partager mon trajet en direct</h3>
-            <p className="text-xs text-slate-300">
-              Permettez à vos proches de suivre en direct votre position GPS et le numéro d'immatriculation du chauffeur ({activeRide?.driver?.vehicle.plateNumber}).
-            </p>
-
-            <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-left font-mono text-[11px] text-emerald-400 break-all select-all">
-              https://yoon.sn/track/{activeRide?.id || 'live-ride-7492'}
-            </div>
-
-            <button
-              onClick={() => setShowShareModal(false)}
-              className="w-full py-2 bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl"
-            >
-              Fermer
-            </button>
           </div>
         </div>
       )}

@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ripple-wave {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-neon {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 208, 132, 0.4), 0 0 30px rgba(0, 208, 132, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 208, 132, 0.7), 0 0 45px rgba(0, 208, 132, 0.35);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 2.4s linear infinite;
+}
+
+.animate-ripple-1 {
+  animation: ripple-wave 2.2s cubic-bezier(0.1, 0.7, 0.1, 1) infinite;
+}
+
+.animate-ripple-2 {
+  animation: ripple-wave 2.2s cubic-bezier(0.1, 0.7, 0.1, 1) infinite;
+  animation-delay: 0.7s;
+}
+
+.animate-ripple-3 {
+  animation: ripple-wave 2.2s cubic-bezier(0.1, 0.7, 0.1, 1) infinite;
+  animation-delay: 1.4s;
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(0, 208, 132, 0.35);
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

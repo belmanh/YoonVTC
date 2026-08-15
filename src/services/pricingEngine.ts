@@ -1,5 +1,6 @@
-import { GeoLocation, VehicleCategory, PriceBreakdown, PricingRule } from '../types/vtc';
+import { GeoLocation, VehicleCategory, PriceBreakdown, PricingRule, FixedPricePackage } from '../types/vtc';
 import { PRICING_RULES, SENEGAL_ZONES } from '../data/senegalData';
+import { findMatchingFixedPackage } from '../data/fixedPackages';
 
 /**
  * Calculateur de distance Haversine avec ajustement routier urbain pour le Sénégal
@@ -34,7 +35,9 @@ export function estimateDurationMinutes(
   const isAirportOrInterurban =
     from.name.includes('AIBD') ||
     to.name.includes('AIBD') ||
-    from.city !== to.city;
+    from.city !== to.city ||
+    to.quarter.includes('Saly') ||
+    to.quarter.includes('Thiès');
 
   let averageSpeedKmh = 28; // Vitesse moyenne à Dakar ville (embouteillages, ralentisseurs)
 
@@ -53,7 +56,7 @@ export function estimateDurationMinutes(
  * Détection des zones à péage (Autoroute de l'Avenir vers Diamniadio / AIBD / Saly)
  */
 export function detectTollFee(from: GeoLocation, to: GeoLocation): number {
-  const isAIBD = from.name.includes('AIBD') || to.name.includes('AIBD');
+  const isAIBD = from.name.includes('AIBD') || to.name.includes('AIBD') || from.quarter.includes('Diass') || to.quarter.includes('Diass');
   const isSalyOrMbour = from.city === 'Mbour' || to.city === 'Mbour' || from.quarter.includes('Saly') || to.quarter.includes('Saly');
   const isDiamniadio = from.quarter.includes('Diamniadio') || to.quarter.includes('Diamniadio');
 
@@ -64,7 +67,7 @@ export function detectTollFee(from: GeoLocation, to: GeoLocation): number {
 }
 
 /**
- * Détecte les tarifs forfaitaires officiels AIBD ou calcule le tarif dynamique en FCFA
+ * Détecte les tarifs forfaitaires officiels ou calcule le tarif dynamique en FCFA
  */
 export function calculateRidePrice(
   from: GeoLocation,
@@ -74,10 +77,13 @@ export function calculateRidePrice(
     isRushHour?: boolean;
     surgeMultiplier?: number;
     customPricingRules?: Record<string, PricingRule>;
+    forceFixedPackage?: FixedPricePackage;
   } = {}
 ): {
   distanceKm: number;
   durationMinutes: number;
+  isFixedPricePackage: boolean;
+  fixedPackageName?: string;
   breakdown: PriceBreakdown;
 } {
   const distanceKm = calculateDistanceKm(from, to);
@@ -86,27 +92,27 @@ export function calculateRidePrice(
   const rules = options.customPricingRules || PRICING_RULES;
   const rule = rules[category] || PRICING_RULES.standard;
 
-  const isAIBD = from.name.includes('AIBD') || to.name.includes('AIBD');
+  // Recherche d'un forfait fixe adapté (AIBD, Saly, Diamniadio, Thiès)
+  const matchedFixedPkg = options.forceFixedPackage || findMatchingFixedPackage(from.quarter, to.quarter, category);
 
-  // Tarifs forfaitaires AIBD Aéroport
-  if (isAIBD && category !== 'interurbain') {
-    let aibdFixedFare = 15000; // Éco / Standard forfait 15 000 FCFA
-    if (category === 'confort') aibdFixedFare = 22000; // Confort VIP forfait 22 000 FCFA
-    
-    const commission = Math.round(aibdFixedFare * rule.commissionRate);
+  if (matchedFixedPkg) {
+    const totalFare = matchedFixedPkg.priceFcfa;
+    const commission = Math.round(totalFare * rule.commissionRate);
     return {
-      distanceKm,
-      durationMinutes,
+      distanceKm: matchedFixedPkg.distanceKm || distanceKm,
+      durationMinutes: matchedFixedPkg.estimatedDurationMin || durationMinutes,
+      isFixedPricePackage: true,
+      fixedPackageName: matchedFixedPkg.name,
       breakdown: {
         baseFare: rule.baseFare,
-        distanceCost: Math.round(aibdFixedFare * 0.7),
-        durationCost: Math.round(aibdFixedFare * 0.1),
-        tollFee,
+        distanceCost: Math.round(totalFare * 0.7),
+        durationCost: Math.round(totalFare * 0.1),
+        tollFee: matchedFixedPkg.tollIncluded ? tollFee : 0,
         zoneMultiplier: 1.0,
-        surgeMultiplier: options.surgeMultiplier || 1.0,
-        totalFare: aibdFixedFare,
+        surgeMultiplier: 1.0,
+        totalFare,
         platformCommission: commission,
-        driverNetEarnings: aibdFixedFare - commission,
+        driverNetEarnings: totalFare - commission,
       },
     };
   }
@@ -128,6 +134,7 @@ export function calculateRidePrice(
   return {
     distanceKm,
     durationMinutes,
+    isFixedPricePackage: false,
     breakdown: {
       baseFare,
       distanceCost,
