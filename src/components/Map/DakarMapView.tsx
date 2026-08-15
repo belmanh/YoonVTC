@@ -12,8 +12,61 @@ import {
   Compass,
   KeyRound,
   ExternalLink,
+  Palette,
+  Check,
+  X,
 } from 'lucide-react';
 import L from 'leaflet';
+
+export type MapTileStyle = 'voyager' | 'positron' | 'dark' | 'satellite';
+
+interface MapTileOption {
+  id: MapTileStyle;
+  name: string;
+  icon: string;
+  desc: string;
+}
+
+const MAP_TILE_OPTIONS: MapTileOption[] = [
+  {
+    id: 'voyager',
+    name: 'Carte Claire / Lumineuse',
+    icon: '☀️',
+    desc: 'Belles couleurs vives et contrastées'
+  },
+  {
+    id: 'positron',
+    name: 'Carte Douce (Anti-fatigue visuelle)',
+    icon: '⚪',
+    desc: 'Tons gris doux reposants pour les yeux sensibles'
+  },
+  {
+    id: 'dark',
+    name: 'Carte Sombre / Nuit',
+    icon: '🌙',
+    desc: 'Mode nuit contrasté et sobre'
+  },
+  {
+    id: 'satellite',
+    name: 'Vue Satellite HD',
+    icon: '🛰️',
+    desc: 'Photographie aérienne réelle de Dakar'
+  }
+];
+
+const getTileUrl = (style: MapTileStyle): string => {
+  switch (style) {
+    case 'voyager':
+      return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    case 'positron':
+      return 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    case 'satellite':
+      return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    case 'dark':
+    default:
+      return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  }
+};
 
 interface DakarMapViewProps {
   drivers: Driver[];
@@ -47,6 +100,7 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routePolylineRef = useRef<L.Polyline | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   // Vérification de la clé Google Maps
   const googleMapsKey =
@@ -59,11 +113,30 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
 
   // Mode de rendu cartographique : 'leaflet' (CartoDB / OpenStreetMap) ou 'google' (Google Maps Platform)
   const [mapEngine, setMapEngine] = useState<'leaflet' | 'google'>(hasValidGoogleKey ? 'google' : 'leaflet');
-  const [tileStyle, setTileStyle] = useState<'voyager' | 'dark' | 'satellite'>(theme === 'light' ? 'voyager' : 'dark');
+  const [showStyleMenu, setShowStyleMenu] = useState<boolean>(false);
 
+  // Style de tuiles de la carte (mémorisé dans localStorage pour le confort visuel de l'utilisateur)
+  const [tileStyle, setTileStyle] = useState<MapTileStyle>(() => {
+    const saved = localStorage.getItem('yoon_preferred_map_style');
+    if (saved && ['voyager', 'positron', 'dark', 'satellite'].includes(saved)) {
+      return saved as MapTileStyle;
+    }
+    return theme === 'light' ? 'voyager' : 'dark';
+  });
+
+  // Si aucune préférence explicite n'a été mémorisée, synchroniser avec le thème général
   useEffect(() => {
-    setTileStyle(theme === 'light' ? 'voyager' : 'dark');
+    const saved = localStorage.getItem('yoon_preferred_map_style');
+    if (!saved) {
+      setTileStyle(theme === 'light' ? 'voyager' : 'dark');
+    }
   }, [theme]);
+
+  const handleSelectMapStyle = (newStyle: MapTileStyle) => {
+    setTileStyle(newStyle);
+    localStorage.setItem('yoon_preferred_map_style', newStyle);
+    setShowStyleMenu(false);
+  };
 
   // Calcul en direct de la distance et de l'ETA (temps d'arrivée)
   const routeEtaInfo: RouteEtaResult | null = useMemo(() => {
@@ -82,6 +155,10 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      (mapContainerRef.current as any)._leaflet_id = null;
+    }
+
     const map = L.map(mapContainerRef.current, {
       center: [center[0], center[1]] as L.LatLngTuple,
       zoom: zoom,
@@ -89,17 +166,12 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
       attributionControl: false,
     });
 
-    let tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    if (tileStyle === 'voyager') {
-      tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    } else if (tileStyle === 'satellite') {
-      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-    }
-
-    L.tileLayer(tileUrl, {
+    const tileLayer = L.tileLayer(getTileUrl(tileStyle), {
       maxZoom: 19,
       subdomains: 'abcd',
     }).addTo(map);
+
+    tileLayerRef.current = tileLayer;
 
     const markersGroup = L.layerGroup().addTo(map);
     markersLayerRef.current = markersGroup;
@@ -112,10 +184,21 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
     }
 
     return () => {
-      map.remove();
-      mapInstanceRef.current = null;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      tileLayerRef.current = null;
     };
-  }, [mapEngine, tileStyle]);
+  }, [mapEngine]);
+
+  // Mise à jour dynamique de la couche de tuiles (thème clair/sombre/satellite/positron)
+  useEffect(() => {
+    if (mapEngine !== 'leaflet') return;
+    if (!mapInstanceRef.current || !tileLayerRef.current) return;
+
+    tileLayerRef.current.setUrl(getTileUrl(tileStyle));
+  }, [tileStyle, mapEngine]);
 
   // Mise à jour des marqueurs et du tracé routier Leaflet
   useEffect(() => {
@@ -310,11 +393,86 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
     }
   }, [mapEngine, drivers, selectedPickup, selectedDestination, activeRide, assignedDriverLocation, routeEtaInfo]);
 
+  const containerBg = theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-200 border-slate-300';
+
   return (
-    <div className="relative w-full h-full min-h-[320px] overflow-hidden rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+    <div className={`relative w-full h-full min-h-[320px] overflow-hidden rounded-xl border flex flex-col ${containerBg}`}>
       {/* Rendu Carte : Plan Dakar Interactif Exclusif */}
       <div className="w-full h-full flex-1 relative z-0">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
+      </div>
+
+      {/* Sélecteur de style de carte interactif (Préférence Utilisateur & Confort Visuel) */}
+      <div className="absolute top-3 right-3 z-[450] flex flex-col items-end">
+        <button
+          type="button"
+          onClick={() => setShowStyleMenu(!showStyleMenu)}
+          className="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 rounded-xl shadow-lg backdrop-blur-md text-xs font-bold flex items-center space-x-1.5 transition-all active:scale-95"
+          title="Choisir le fond de carte qui vous convient"
+        >
+          <Palette className="w-3.5 h-3.5 text-blue-400" />
+          <span className="hidden sm:inline"></span>
+          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-500/30 font-semibold">
+            {tileStyle === 'voyager' && '☀️ Claire'}
+            {tileStyle === 'positron' && '⚪ Douce'}
+            {tileStyle === 'dark' && '🌙 Sombre'}
+            {tileStyle === 'satellite' && '🛰️ Satellite'}
+          </span>
+        </button>
+
+        {showStyleMenu && (
+          <div className="mt-1.5 w-64 bg-slate-900/95 border border-slate-700 rounded-2xl p-2.5 shadow-2xl backdrop-blur-xl animate-fadeIn space-y-1">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-800 px-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Fond de Carte Personnalisé</span>
+              <button
+                type="button"
+                onClick={() => setShowStyleMenu(false)}
+                className="text-slate-400 hover:text-white p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-1 pt-1">
+              {MAP_TILE_OPTIONS.map((opt) => {
+                const isSelected = tileStyle === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelectMapStyle(opt.id)}
+                    className={`w-full text-left p-2 rounded-xl transition-all border flex items-start space-x-2.5 ${
+                      isSelected
+                        ? 'bg-blue-950/80 border-blue-500 text-white shadow-sm'
+                        : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base shrink-0 mt-0.5">{opt.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold leading-tight">{opt.name}</p>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-1" />}
+                      </div>
+                      <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{opt.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('yoon_preferred_map_style');
+                setTileStyle(theme === 'light' ? 'voyager' : 'dark');
+                setShowStyleMenu(false);
+              }}
+              className="w-full mt-1 pt-1.5 text-center text-[10px] text-slate-400 hover:text-blue-300 border-t border-slate-800/80 font-medium"
+            >
+              🔄 Réinitialiser selon l'application ({theme === 'light' ? 'Mode Jour' : 'Mode Nuit'})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Bouton Flottant Inférieur : Détection GPS Passager */}

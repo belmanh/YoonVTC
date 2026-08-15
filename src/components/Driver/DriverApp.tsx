@@ -456,6 +456,8 @@ export const DriverApp: React.FC<DriverAppProps> = ({
   const themeTabs = isDark ? 'bg-[#111827] border-slate-800' : 'bg-slate-200 border-slate-300 text-slate-900 shadow-sm';
   const themeCard = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-300 text-slate-900 shadow-md';
   const themeNestedCard = isDark ? 'bg-[#090b14] border-slate-800/60' : 'bg-slate-100 border-slate-300 text-slate-900';
+  const themeOverlay = isDark ? 'bg-[#0B0F19]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl';
+  const themeInput = isDark ? 'bg-[#0B0F19] border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-inner';
 
   return (
     <div className={`flex flex-col h-full relative overflow-hidden ${themeBgMain}`}>
@@ -689,7 +691,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 selectedDestination={activeRide?.destination || null}
                 activeRide={activeRide}
                 assignedDriverLocation={assignedDriverLocation || driver.currentLocation}
-                theme="light"
+                theme={themeMode}
               />
             </div>
 

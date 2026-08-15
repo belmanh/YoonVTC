@@ -31,6 +31,11 @@ import {
   Users,
   Sun,
   Moon,
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  Minimize2,
+  Map,
 } from 'lucide-react';
 import {
   GeoLocation,
@@ -268,6 +273,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const [category, setCategory] = useState<VehicleCategory>('standard');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wave');
   const [isSearchingLocation, setIsSearchingLocation] = useState<'pickup' | 'destination' | null>(null);
+  const [isPanelMinimized, setIsPanelMinimized] = useState<boolean>(false);
   
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -598,11 +604,100 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           />
         </div>
 
+        {/* Bouton Flottant "Carte Plein Écran" pour libérer 85% de l'écran */}
+        {!isPanelMinimized && !activeRide && (
+          <button
+            type="button"
+            onClick={() => setIsPanelMinimized(true)}
+            className="absolute top-3 left-3 z-[400] px-3 py-1.5 bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 rounded-xl shadow-xl backdrop-blur-md text-xs font-bold flex items-center space-x-1.5 transition-all active:scale-95"
+            title="Agrandir la carte à 85% de l'écran"
+          >
+            <Map className="w-3.5 h-3.5 text-blue-400" />
+            <span>Agrandir la Carte</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+        )}
+
         {/* Dynamic Bottom Card floating on top of the Map */}
-        <div className={`w-full max-h-[85%] backdrop-blur-2xl border-t rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between ${themeCard}`}>
+        <div className={`w-full ${isPanelMinimized ? 'max-h-[160px] p-3' : 'max-h-[85%] p-3.5'} backdrop-blur-2xl border-t rounded-t-3xl shadow-2xl overflow-y-auto z-10 flex flex-col justify-between transition-all duration-300 ${themeCard}`}>
           
-          {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION DU TRAJET) */}
-          {!activeRide && (
+          {/* Poignée d'agrandissement / Réduction du Panneau */}
+          <div className="flex items-center justify-between pb-1.5 border-b border-slate-700/40 mb-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsPanelMinimized(!isPanelMinimized)}
+              className="flex items-center space-x-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {isPanelMinimized ? (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Afficher toutes les options</span>
+                </>
+              ) : (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-blue-400">Agrandir la Carte (Réduire)</span>
+                </>
+              )}
+            </button>
+
+            {/* Barre de glissement tactile */}
+            <div 
+              onClick={() => setIsPanelMinimized(!isPanelMinimized)}
+              className="w-12 h-1.5 bg-slate-500/50 hover:bg-blue-400 rounded-full cursor-pointer transition-colors"
+              title="Cliquer pour réduire ou agrandir"
+            />
+
+            <button
+              type="button"
+              onClick={() => setIsPanelMinimized(!isPanelMinimized)}
+              className={`p-1 rounded-lg border text-xs font-bold transition-all ${
+                isDark ? 'bg-[#0B0F19] border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-300 text-slate-700'
+              }`}
+              title={isPanelMinimized ? "Afficher plus d'options" : "Réduire pour voir la carte"}
+            >
+              {isPanelMinimized ? <ChevronUp className="w-4 h-4 text-blue-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
+          </div>
+
+          {/* ÉTAT COMPACT (PANNEAU RÉDUIT POUR AGRANDIR LA CARTE À 85%) */}
+          {!activeRide && isPanelMinimized && (
+            <div className="flex items-center justify-between gap-2.5 py-1">
+              <div 
+                onClick={() => setIsPanelMinimized(false)}
+                className="flex-1 min-w-0 cursor-pointer group"
+                title="Cliquer pour modifier le trajet"
+              >
+                <div className="flex items-center space-x-1.5 text-xs font-bold truncate">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                  <span className={`truncate group-hover:text-blue-400 ${themeTextMain}`}>{pickup.name}</span>
+                  <span className="text-slate-400 font-mono">➔</span>
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                  <span className={`truncate group-hover:text-rose-400 ${themeTextMain}`}>{destination.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-blue-400 font-semibold mt-0.5">
+                  <span className="uppercase font-bold">{category}</span>
+                  <span>•</span>
+                  <span>{estimate.distanceKm} km (~{estimate.durationMinutes} min)</span>
+                  <span className="text-slate-400 font-normal underline">Changer</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirmBooking}
+                className="py-2.5 px-3.5 bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-400 hover:to-pink-400 text-white font-black text-xs rounded-xl shadow-lg shrink-0 flex items-center space-x-1 active:scale-95 transition-all"
+              >
+                <span>Commander</span>
+                <span className="text-[10px] font-mono bg-black/20 px-1.5 py-0.5 rounded">
+                  {SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* ÉTAT 1 COMPLET: AUCUNE COURSE ACTIVE (CONFIGURATION DU TRAJET) */}
+          {!activeRide && !isPanelMinimized && (
             <div className="space-y-3.5">
               {/* Trajet : Saisie Départ et Destination */}
               <div className={`space-y-2 p-2.5 rounded-2xl border ${themeNestedCard}`}>
