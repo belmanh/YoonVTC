@@ -29,6 +29,8 @@ import {
   Info,
   ShieldCheck,
   Users,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   GeoLocation,
@@ -269,6 +271,33 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Theme state (sombre/clair avec option auto basée sur l'heure)
+  const [isThemeAuto, setIsThemeAuto] = useState<boolean>(false);
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    if (!isThemeAuto) return;
+    const checkTheme = () => {
+      const hour = new Date().getHours();
+      setThemeMode((hour < 7 || hour >= 19) ? 'dark' : 'light');
+    };
+    checkTheme();
+    const interval = setInterval(checkTheme, 60000);
+    return () => clearInterval(interval);
+  }, [isThemeAuto]);
+
+  const isDark = themeMode === 'dark';
+
+  // Dynamic theme-aware classes
+  const themeBgMain = isDark ? 'bg-[#090b14] text-slate-100' : 'bg-slate-100 text-slate-900';
+  const themeBgHeader = isDark ? 'bg-[#111827]/95 border-slate-800' : 'bg-white border-slate-300 text-slate-900 shadow-sm';
+  const themeCard = isDark ? 'bg-[#111827]/95 border-slate-800/90 text-slate-100' : 'bg-white/95 border-slate-300 text-slate-900 shadow-2xl';
+  const themeNestedCard = isDark ? 'bg-[#0B0F19]/60 border-slate-800/50 text-slate-100' : 'bg-slate-50 border-slate-300 text-slate-900 shadow-sm';
+  const themeTextMain = isDark ? 'text-white' : 'text-slate-900 font-bold';
+  const themeTextMuted = isDark ? 'text-slate-400' : 'text-slate-600 font-semibold';
+  const themeInput = isDark ? 'bg-[#0B0F19] border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 shadow-inner';
+  const themeOverlay = isDark ? 'bg-[#0B0F19]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl';
+
   // Repère visuel & Note Vocale
   const [landmarkHint, setLandmarkHint] = useState<string>('');
   const [voiceNoteData, setVoiceNoteData] = useState<{ url: string; duration: number; textSummary?: string } | null>(null);
@@ -463,9 +492,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const driverPhoneClean = activeRide?.driver?.phone.replace(/[^0-9]/g, '') || '221775213489';
 
   return (
-    <div className="flex flex-col h-full bg-[#090b14] text-slate-100 relative overflow-hidden font-sans select-none dark before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] before:from-pink-900/20 before:via-[#090b14]/0 before:to-[#090b14]/0 after:absolute after:inset-0 after:bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] after:from-blue-900/20 after:via-[#090b14]/0 after:to-[#090b14]/0">
+    <div className={`flex flex-col h-full relative overflow-hidden font-sans select-none ${themeBgMain}`}>
       {/* Top Header Uber Premium */}
-      <div className="px-4 py-3 bg-[#111827]/95 backdrop-blur-xl border-b border-slate-800/80 flex items-center justify-between z-20 shadow-lg shrink-0">
+      <div className={`px-4 py-3 backdrop-blur-xl border-b flex items-center justify-between z-20 shrink-0 ${themeBgHeader}`}>
         <div 
           onClick={() => setShowHistoryModal(true)}
           className="flex items-center space-x-3 cursor-pointer group"
@@ -481,8 +510,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-blue-400 transition-colors">{passenger.fullName}</h3>
-              <span className="px-1.5 py-0.2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-[10px] rounded-full flex items-center gap-0.5">
+              <h3 className={`text-sm tracking-tight group-hover:text-blue-500 transition-colors ${themeTextMain}`}>{passenger.fullName}</h3>
+              <span className="px-1.5 py-0.2 bg-amber-500/10 border border-amber-500/30 text-amber-500 font-bold text-[10px] rounded-full flex items-center gap-0.5">
                 ★ {passenger.rating}
               </span>
             </div>
@@ -490,6 +519,30 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Bouton de Bascule de Thème (Auto / Manuel) */}
+          <button
+            onClick={() => {
+              setIsThemeAuto(false);
+              setThemeMode(prev => prev === 'dark' ? 'light' : 'dark');
+            }}
+            onDoubleClick={() => {
+              setIsThemeAuto(true);
+              const hour = new Date().getHours();
+              setThemeMode((hour < 7 || hour >= 19) ? 'dark' : 'light');
+            }}
+            className={`p-1.5 rounded-xl border flex items-center gap-1 transition-all ${
+              isDark 
+                ? 'bg-[#1F2937] border-slate-700 text-amber-400 hover:bg-slate-700' 
+                : 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200'
+            }`}
+            title={isThemeAuto ? "Thème Auto basé sur l'heure locale (Clic pour forcer, double-clic pour restaurer)" : "Thème Manuel (Double-clic pour restaurer Auto)"}
+          >
+            {isDark ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 text-amber-500 animate-pulse" />}
+            <span className="text-[9px] font-black uppercase hidden sm:inline-block">
+              {isThemeAuto ? '🌙 Auto' : '☀️ Manuel'}
+            </span>
+          </button>
+
           {/* Bouton SOS d'urgence */}
           {activeRide && (
             <button
@@ -506,24 +559,24 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* Notification Système Simulée : Chauffeur à < 500m */}
       {showApproachingNotification && activeRide && activeRide.driver && (
-        <div className="absolute top-16 left-4 right-4 z-30 bg-[#111827]/95 backdrop-blur-xl border-2 border-blue-400 rounded-2xl shadow-2xl p-3.5 flex items-center space-x-3 animate-bounce">
+        <div className={`absolute top-16 left-4 right-4 z-30 border-2 border-blue-400 rounded-2xl shadow-2xl p-3.5 flex items-center space-x-3 animate-bounce ${themeCard}`}>
           <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/50 flex items-center justify-center text-blue-400 shrink-0">
             <Car className="w-5 h-5 animate-pulse" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider">🔔 Notification Yoon VTC</span>
+              <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">🔔 Notification Yoon VTC</span>
               <button 
                 onClick={() => setShowApproachingNotification(false)}
-                className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-[#1F2937]"
+                className={`text-xs font-bold px-1.5 py-0.5 rounded ${isDark ? 'text-slate-400 hover:text-white bg-[#1F2937]' : 'text-slate-600 hover:text-slate-900 bg-slate-200'}`}
               >
                 ✕
               </button>
             </div>
-            <p className="text-xs font-bold text-white mt-0.5">
-              Votre chauffeur <span className="text-blue-400">{activeRide.driver.fullName}</span> est à moins de 500m !
+            <p className={`text-xs mt-0.5 ${themeTextMain}`}>
+              Votre chauffeur <span className="text-blue-500">{activeRide.driver.fullName}</span> est à moins de 500m !
             </p>
-            <p className="text-[10px] text-slate-300">
+            <p className={`text-[10px] ${themeTextMuted}`}>
               Préparez-vous au départ : {activeRide.pickup.quarter}. Véhicule : {activeRide.driver.vehicle.brand} ({activeRide.driver.vehicle.plateNumber})
             </p>
           </div>
@@ -541,53 +594,57 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             activeRide={activeRide}
             assignedDriverLocation={assignedDriverLocation}
             onGpsLocatePassenger={handleDetectGps}
-            theme='dark'
+            theme={themeMode}
           />
         </div>
 
-        {/* Dynamic Glassmorphic Bottom Card floating on top of the Map */}
-        <div className="w-full max-h-[85%] bg-[#111827]/95 backdrop-blur-2xl border-t border-slate-800/90 rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between">
+        {/* Dynamic Bottom Card floating on top of the Map */}
+        <div className={`w-full max-h-[85%] backdrop-blur-2xl border-t rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between ${themeCard}`}>
           
           {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION DU TRAJET) */}
           {!activeRide && (
             <div className="space-y-3.5">
               {/* Trajet : Saisie Départ et Destination */}
-              <div className="space-y-2 bg-[#0B0F19]/60 p-2.5 rounded-2xl border border-slate-800/50">
+              <div className={`space-y-2 p-2.5 rounded-2xl border ${themeNestedCard}`}>
                 {/* Point de Départ */}
                 <div
                   onClick={() => setIsSearchingLocation('pickup')}
-                  className="flex items-center space-x-3 p-2 rounded-xl bg-[#111827]/40 hover:bg-[#1F2937]/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
+                  className={`flex items-center space-x-3 p-2 rounded-xl border cursor-pointer transition-all active:scale-[0.99] ${
+                    isDark ? 'bg-[#111827]/40 hover:bg-[#1F2937]/60 border-slate-800/30' : 'bg-white hover:bg-slate-100 border-slate-200 shadow-sm'
+                  }`}
                 >
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 ring-4 ring-blue-400/20 shrink-0"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shrink-0"></div>
                   <div className="flex-1 truncate">
-                    <p className="text-[9px] uppercase font-bold text-blue-400 tracking-wider">Point de départ</p>
-                    <p className="text-xs font-bold text-slate-100 truncate">{pickup.name}</p>
+                    <p className="text-[9px] uppercase font-bold text-blue-500 tracking-wider">Point de départ</p>
+                    <p className={`text-xs font-bold truncate ${themeTextMain}`}>{pickup.name}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                  <ChevronRight className={`w-4 h-4 ${themeTextMuted}`} />
                 </div>
 
                 {/* Destination */}
                 <div
                   onClick={() => setIsSearchingLocation('destination')}
-                  className="flex items-center space-x-3 p-2 rounded-xl bg-[#111827]/40 hover:bg-[#1F2937]/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
+                  className={`flex items-center space-x-3 p-2 rounded-xl border cursor-pointer transition-all active:scale-[0.99] ${
+                    isDark ? 'bg-[#111827]/40 hover:bg-[#1F2937]/60 border-slate-800/30' : 'bg-white hover:bg-slate-100 border-slate-200 shadow-sm'
+                  }`}
                 >
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/20 shrink-0"></div>
                   <div className="flex-1 truncate">
-                    <p className="text-[9px] uppercase font-bold text-rose-400 tracking-wider">Où allez-vous ?</p>
-                    <p className="text-xs font-bold text-slate-100 truncate">{destination.name}</p>
+                    <p className="text-[9px] uppercase font-bold text-rose-500 tracking-wider">Où allez-vous ?</p>
+                    <p className={`text-xs font-bold truncate ${themeTextMain}`}>{destination.name}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                  <ChevronRight className={`w-4 h-4 ${themeTextMuted}`} />
                 </div>
               </div>
 
               {/* Raccourcis Trajets Favoris & Trafic Dakar */}
               <div className="space-y-1.5 pt-0.5">
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-slate-400 font-bold uppercase tracking-wider">Favoris à Dakar</span>
+                  <span className={`font-bold uppercase tracking-wider ${themeTextMuted}`}>Favoris à Dakar</span>
                   <span className={`px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
                     ((new Date().getHours() >= 7 && new Date().getHours() <= 10) || (new Date().getHours() >= 17 && new Date().getHours() <= 20))
-                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-                      : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500'
+                      : 'bg-blue-500/10 border border-blue-500/30 text-blue-500'
                   }`}>
                     <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-current"></span>
                     <span>
@@ -613,7 +670,11 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                         setDestination(fav.d);
                         setSelectedFixedPackage(null);
                       }}
-                      className="px-2.5 py-1 bg-[#0B0F19] hover:bg-[#1F2937] border border-slate-800 rounded-xl text-[11px] font-semibold text-slate-300 shrink-0 transition-all active:scale-95 flex items-center gap-1"
+                      className={`px-2.5 py-1 border rounded-xl text-[11px] font-semibold shrink-0 transition-all active:scale-95 flex items-center gap-1 ${
+                        isDark 
+                          ? 'bg-[#0B0F19] hover:bg-[#1F2937] border-slate-800 text-slate-300' 
+                          : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
+                      }`}
                     >
                       <span>{fav.name}</span>
                     </button>
@@ -624,14 +685,14 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               {/* Sélection des Gammes de Véhicules en Ligne Horizontale Défilante */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <label className={`text-[10px] font-bold uppercase tracking-wider ${themeTextMuted}`}>
                     Gamme de véhicule
                   </label>
                   {/* Bouton rapide d'affichage des détails */}
                   <button
                     type="button"
                     onClick={() => setShowTripDetailsModal(true)}
-                    className="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                    className="text-[10px] text-blue-500 hover:text-blue-600 font-bold flex items-center gap-1 active:scale-95 transition-all"
                   >
                     <Info className="w-3.5 h-3.5" />
                     <span>Détails & Options</span>
@@ -653,26 +714,30 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                         onClick={() => setCategory(catKey)}
                         className={`p-2 rounded-xl border cursor-pointer transition-all flex flex-col justify-between shrink-0 w-36 snap-start active:scale-[0.98] ${
                           isSelected
-                            ? 'bg-blue-950/40 border-blue-400 ring-1 ring-blue-400 text-white shadow-lg shadow-blue-950/40'
-                            : 'bg-[#0B0F19]/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg'
+                            : isDark
+                            ? 'bg-[#0B0F19]/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                            : 'bg-slate-100 border-slate-300 text-slate-800 hover:border-slate-400'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-1 truncate">
-                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
-                            {catKey === 'standard' && <CarFront className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
-                            {catKey === 'confort' && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                            {catKey === 'interurbain' && <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-                            <span className="text-[11px] font-bold text-slate-100 truncate">{rule.name.split(' ')[1] || rule.name}</span>
+                            {catKey === 'eco' && <Car className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-blue-500'}`} />}
+                            {catKey === 'standard' && <CarFront className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-sky-500'}`} />}
+                            {catKey === 'confort' && <Crown className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-amber-500'}`} />}
+                            {catKey === 'interurbain' && <MapPin className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-indigo-500'}`} />}
+                            <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-white' : themeTextMain}`}>{rule.name.split(' ')[1] || rule.name}</span>
                           </div>
-                          <span className="text-[10px] text-slate-300 bg-[#111827]/90 px-1.5 py-0.5 rounded-md shrink-0 flex items-center gap-1 font-mono">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md shrink-0 flex items-center gap-1 font-mono ${
+                            isSelected ? 'bg-blue-700 text-white' : isDark ? 'bg-[#111827]/90 text-slate-300' : 'bg-slate-200 text-slate-700'
+                          }`}>
                             <Users className="w-3 h-3 text-blue-400" />
                             <span>{rule.capacity.replace('places', '').trim()}</span>
                           </span>
                         </div>
 
-                        <div className="flex items-baseline justify-between mt-1 pt-1 border-t border-slate-800/40">
-                          <span className={`text-xs font-black ${isSelected ? 'text-blue-400' : 'text-slate-200'}`}>
+                        <div className={`flex items-baseline justify-between mt-1 pt-1 border-t ${isSelected ? 'border-blue-400/50' : isDark ? 'border-slate-800/40' : 'border-slate-300'}`}>
+                          <span className={`text-xs font-black ${isSelected ? 'text-white' : 'text-blue-500'}`}>
                             {SenegalPaymentService.formatFCFA(catEstimate.breakdown.totalFare)}
                           </span>
                         </div>
@@ -1009,17 +1074,17 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL DÉTAILS ET OPTIONS DU TRAJET */}
       {showTripDetailsModal && (
-        <div className="absolute inset-0 bg-[#0B0F19]/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-end animate-fadeIn">
-          <div className="w-full bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
+        <div className={`absolute inset-0 z-50 p-4 flex flex-col justify-end animate-fadeIn ${themeOverlay}`}>
+          <div className={`w-full border rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto ${themeCard}`}>
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Info className="w-5 h-5 text-blue-400" />
+            <div className={`flex items-center justify-between pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-300'}`}>
+              <h3 className={`text-base font-bold flex items-center gap-2 ${themeTextMain}`}>
+                <Info className="w-5 h-5 text-blue-500" />
                 Détails du trajet & Tarifs
               </h3>
               <button
                 onClick={() => setShowTripDetailsModal(false)}
-                className="p-1.5 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
+                className={`p-1.5 rounded-full ${isDark ? 'bg-[#1F2937] text-slate-400 hover:text-white' : 'bg-slate-200 text-slate-700 hover:text-slate-900'}`}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1038,54 +1103,54 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             </div>
 
             {/* Time Estimation */}
-            <div className="grid grid-cols-2 gap-3 p-3 bg-[#0B0F19] rounded-2xl border border-slate-800/80 mb-4">
+            <div className={`grid grid-cols-2 gap-3 p-3 rounded-2xl border ${themeNestedCard}`}>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Départ immédiat</p>
-                <p className="text-sm font-black text-white">{new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+                <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Départ immédiat</p>
+                <p className={`text-sm font-black ${themeTextMain}`}>{new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Arrivée estimée</p>
-                <p className="text-sm font-black text-white">{new Date(Date.now() + estimate.durationMinutes * 60000).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+                <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Arrivée estimée</p>
+                <p className={`text-sm font-black ${themeTextMain}`}>{new Date(Date.now() + estimate.durationMinutes * 60000).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
               </div>
             </div>
 
             {/* Itinerary Metrics */}
-            <div className="grid grid-cols-2 gap-3 p-3 bg-[#0B0F19] rounded-2xl border border-slate-800/80">
+            <div className={`grid grid-cols-2 gap-3 p-3 rounded-2xl border ${themeNestedCard}`}>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Distance totale</p>
-                <p className="text-sm font-black text-white">{estimate.distanceKm} km</p>
+                <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Distance totale</p>
+                <p className={`text-sm font-black ${themeTextMain}`}>{estimate.distanceKm} km</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Durée estimée</p>
-                <p className="text-sm font-black text-white">{estimate.durationMinutes} min</p>
+                <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Durée estimée</p>
+                <p className={`text-sm font-black ${themeTextMain}`}>{estimate.durationMinutes} min</p>
               </div>
             </div>
 
             {/* Fare Breakdown Details */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Détails de la tarification ({category.toUpperCase()})</h4>
-              <div className="p-3 bg-[#0B0F19] rounded-xl border border-slate-800/85 space-y-2 text-xs">
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${themeTextMuted}`}>Détails de la tarification ({category.toUpperCase()})</h4>
+              <div className={`p-3 rounded-xl border space-y-2 text-xs ${themeNestedCard}`}>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Prise en charge de base</span>
-                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.baseFare)}</span>
+                  <span className={themeTextMuted}>Prise en charge de base</span>
+                  <span className={`font-semibold ${themeTextMain}`}>{SenegalPaymentService.formatFCFA(estimate.breakdown.baseFare)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Coût de la distance ({estimate.distanceKm} km)</span>
-                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.distanceCost)}</span>
+                  <span className={themeTextMuted}>Coût de la distance ({estimate.distanceKm} km)</span>
+                  <span className={`font-semibold ${themeTextMain}`}>{SenegalPaymentService.formatFCFA(estimate.breakdown.distanceCost)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Coût de la durée (~{estimate.durationMinutes} min)</span>
-                  <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.durationCost)}</span>
+                  <span className={themeTextMuted}>Coût de la durée (~{estimate.durationMinutes} min)</span>
+                  <span className={`font-semibold ${themeTextMain}`}>{SenegalPaymentService.formatFCFA(estimate.breakdown.durationCost)}</span>
                 </div>
                 {estimate.breakdown.tollFee > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Péage Autoroute Dakar inclus</span>
-                    <span className="font-semibold text-blue-400">+{SenegalPaymentService.formatFCFA(estimate.breakdown.tollFee)}</span>
+                    <span className={themeTextMuted}>Péage Autoroute Dakar inclus</span>
+                    <span className="font-semibold text-blue-500">+{SenegalPaymentService.formatFCFA(estimate.breakdown.tollFee)}</span>
                   </div>
                 )}
-                <div className="border-t border-slate-800/60 pt-2 flex justify-between font-bold text-sm">
-                  <span className="text-white">Total estimé</span>
-                  <span className="text-blue-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
+                <div className={`border-t pt-2 flex justify-between font-bold text-sm ${isDark ? 'border-slate-800' : 'border-slate-300'}`}>
+                  <span className={themeTextMain}>Total estimé</span>
+                  <span className="text-blue-500 font-black">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
                 </div>
               </div>
             </div>
@@ -1093,8 +1158,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             {/* Forfaits Fixes Interurbains & VIP optionnels */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Forfaits fixes directs</h4>
-                <span className="text-[9px] text-blue-400">péage inclus</span>
+                <h4 className={`text-xs font-bold uppercase tracking-wider ${themeTextMuted}`}>Forfaits fixes directs</h4>
+                <span className="text-[9px] text-blue-500 font-bold">péage inclus</span>
               </div>
               <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
                 {FIXED_PRICE_PACKAGES.map((pkg) => {
@@ -1109,12 +1174,14 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border flex flex-col items-start ${
                         isSelected
-                          ? 'bg-blue-950/80 border-blue-400 text-white ring-1 ring-blue-400 shadow-md'
-                          : 'bg-[#0B0F19] border-slate-800 text-slate-300 hover:border-slate-700'
+                          ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                          : isDark
+                          ? 'bg-[#0B0F19] border-slate-800 text-slate-300 hover:border-slate-700'
+                          : 'bg-slate-100 border-slate-300 text-slate-800 hover:border-slate-400'
                       }`}
                     >
                       <span>{pkg.name.replace('Forfait ', '')}</span>
-                      <span className="text-amber-400 font-mono mt-0.5">
+                      <span className="text-amber-500 font-mono mt-0.5">
                         {SenegalPaymentService.formatFCFA(pkg.priceFcfa)}
                       </span>
                     </button>
@@ -1126,11 +1193,11 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             {/* Note Vocale & Repère */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Note Vocale & Repère Chauffeur</h4>
+                <h4 className={`text-xs font-bold uppercase tracking-wider ${themeTextMuted}`}>Note Vocale & Repère Chauffeur</h4>
                 <button
                   type="button"
                   onClick={() => setShowVoiceRecorderModal(true)}
-                  className="px-2 py-1 bg-blue-950 hover:bg-blue-900 border border-blue-500/30 rounded-lg text-blue-300 text-[10px] font-bold flex items-center gap-1"
+                  className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow-sm"
                 >
                   <Mic className="w-3 h-3" />
                   <span>{voiceNoteData ? 'Modifier vocal' : '+ Note vocale'}</span>
@@ -1142,22 +1209,22 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 placeholder="Ex: Devant la Brioche Dorée, face à la mosquée ou portail vert..."
                 value={landmarkHint}
                 onChange={(e) => setLandmarkHint(e.target.value)}
-                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-400"
+                className={`w-full rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-400 ${themeInput}`}
               />
 
               {voiceNoteData && (
-                <div className="p-2 bg-blue-950/40 border border-blue-500/20 rounded-xl flex items-center justify-between">
+                <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Volume2 className="w-3.5 h-3.5 text-blue-400" />
+                    <Volume2 className="w-3.5 h-3.5 text-blue-500" />
                     <div>
-                      <p className="text-xs font-bold text-blue-300">Message vocal joint ({voiceNoteData.duration}s)</p>
-                      <p className="text-[10px] text-slate-400 truncate max-w-xs">{voiceNoteData.textSummary}</p>
+                      <p className={`text-xs font-bold ${themeTextMain}`}>Message vocal joint ({voiceNoteData.duration}s)</p>
+                      <p className={`text-[10px] truncate max-w-xs ${themeTextMuted}`}>{voiceNoteData.textSummary}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setVoiceNoteData(null)}
-                    className="p-1 text-rose-400 hover:text-rose-300"
+                    className="p-1 text-rose-500 hover:text-rose-600"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1168,7 +1235,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             {/* Bottom Action */}
             <button
               onClick={() => setShowTripDetailsModal(false)}
-              className="w-full py-2.5 bg-[#1F2937] hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
+              className={`w-full py-2.5 font-bold rounded-xl text-xs ${
+                isDark ? 'bg-[#1F2937] hover:bg-slate-700 text-slate-300' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+              }`}
             >
               Fermer et retourner à l'écran principal
             </button>
@@ -1187,34 +1256,34 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL RECHERCHE DE LIEU */}
       {isSearchingLocation && (
-        <div className="absolute inset-0 bg-[#0B0F19]/95 backdrop-blur-xl z-50 p-4 flex flex-col animate-fadeIn">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <h3 className="text-sm font-bold text-white">
+        <div className={`absolute inset-0 z-50 p-4 flex flex-col animate-fadeIn ${themeOverlay}`}>
+          <div className={`flex items-center justify-between pb-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-300'}`}>
+            <h3 className={`text-sm font-bold ${themeTextMain}`}>
               {isSearchingLocation === 'pickup' ? 'Définir le lieu de départ' : 'Définir la destination'}
             </h3>
             <button
               onClick={() => setIsSearchingLocation(null)}
-              className="p-1 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
+              className={`p-1 rounded-full ${isDark ? 'bg-[#1F2937] text-slate-400 hover:text-white' : 'bg-slate-200 text-slate-700 hover:text-slate-900'}`}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="relative my-3">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <Search className={`w-4 h-4 absolute left-3 top-3 ${themeTextMuted}`} />
             <input
               type="text"
               placeholder="Rechercher un quartier ou un lieu à Dakar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-[#111827] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
+              className={`w-full pl-9 pr-4 py-2.5 rounded-xl text-xs outline-none focus:border-blue-400 ${themeInput}`}
               autoFocus
             />
           </div>
 
           {/* Raccourcis Favoris Enregistrés */}
           <div className="mb-3 space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">
+            <div className={`flex items-center justify-between text-[10px] font-bold uppercase tracking-wider px-1 ${themeTextMuted}`}>
               <span>⭐ Vos Lieux Favoris</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -1222,19 +1291,21 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <div
                   key={fav.id}
                   onClick={() => handleSelectLocation(fav.location)}
-                  className="p-2 bg-[#111827] hover:bg-[#1F2937] border border-slate-800 rounded-xl cursor-pointer flex items-center space-x-2 transition-all active:scale-95"
+                  className={`p-2 border rounded-xl cursor-pointer flex items-center space-x-2 transition-all active:scale-95 ${
+                    isDark ? 'bg-[#111827] hover:bg-[#1F2937] border-slate-800' : 'bg-white hover:bg-slate-100 border-slate-300 shadow-sm'
+                  }`}
                 >
                   <span className="text-base">{fav.icon}</span>
                   <div className="flex-1 truncate">
-                    <p className="text-xs font-bold text-slate-200 truncate">{fav.name}</p>
-                    <p className="text-[9px] text-slate-400 truncate">{fav.location.quarter}</p>
+                    <p className={`text-xs font-bold truncate ${themeTextMain}`}>{fav.name}</p>
+                    <p className={`text-[9px] truncate ${themeTextMuted}`}>{fav.location.quarter}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">
+          <div className={`text-[10px] font-bold uppercase tracking-wider px-1 mb-1 ${themeTextMuted}`}>
             Tous les lieux à Dakar
           </div>
 
@@ -1243,14 +1314,16 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               <div
                 key={idx}
                 onClick={() => handleSelectLocation(loc)}
-                className="p-2.5 rounded-xl hover:bg-[#111827] border border-transparent hover:border-slate-800 cursor-pointer flex items-center space-x-3 transition-colors"
+                className={`p-2.5 rounded-xl border cursor-pointer flex items-center space-x-3 transition-colors ${
+                  isDark ? 'hover:bg-[#111827] border-transparent hover:border-slate-800' : 'hover:bg-slate-100 border-transparent hover:border-slate-300'
+                }`}
               >
-                <div className="w-7 h-7 rounded-lg bg-blue-950/60 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-500 shrink-0">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 truncate">
-                  <p className="text-xs font-bold text-slate-100 truncate">{loc.name}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{loc.quarter} • {loc.city}</p>
+                  <p className={`text-xs font-bold truncate ${themeTextMain}`}>{loc.name}</p>
+                  <p className={`text-[10px] truncate ${themeTextMuted}`}>{loc.quarter} • {loc.city}</p>
                 </div>
               </div>
             ))}
@@ -1260,22 +1333,22 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL ANNULATION DE COURSE AVEC MOTIFS */}
       {showCancelModal && (
-        <div className="absolute inset-0 bg-[#0B0F19]/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-center items-center animate-fadeIn">
-          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div className={`absolute inset-0 backdrop-blur-xl z-50 p-4 flex flex-col justify-center items-center animate-fadeIn ${themeOverlay}`}>
+          <div className={`w-full max-w-sm border rounded-3xl p-5 shadow-2xl space-y-4 ${themeCard}`}>
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <h3 className={`text-base font-bold flex items-center gap-2 ${themeTextMain}`}>
                 <AlertTriangle className="w-5 h-5 text-rose-500" />
                 Annulation de la course
               </h3>
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="p-1 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
+                className={`p-1 rounded-full ${isDark ? 'bg-[#1F2937] text-slate-400 hover:text-white' : 'bg-slate-200 text-slate-700 hover:text-slate-900'}`}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300">
+            <p className={`text-xs ${themeTextMuted}`}>
               Veuillez nous indiquer la raison de l'annulation pour nous aider à améliorer la qualité du service à Dakar :
             </p>
 
@@ -1286,12 +1359,14 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   onClick={() => setSelectedCancelReason(reason.id)}
                   className={`p-2.5 rounded-xl border cursor-pointer text-xs font-medium transition-all flex items-center justify-between ${
                     selectedCancelReason === reason.id
-                      ? 'bg-rose-950/40 border-rose-500 text-rose-200'
-                      : 'bg-[#0B0F19] border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-600 font-bold'
+                      : isDark
+                      ? 'bg-[#0B0F19] border-slate-800 text-slate-400 hover:border-slate-700'
+                      : 'bg-slate-100 border-slate-300 text-slate-700 hover:border-slate-400'
                   }`}
                 >
                   <span>{reason.label}</span>
-                  {selectedCancelReason === reason.id && <Check className="w-4 h-4 text-rose-400" />}
+                  {selectedCancelReason === reason.id && <Check className="w-4 h-4 text-rose-500" />}
                 </div>
               ))}
             </div>
@@ -1299,7 +1374,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2.5 bg-[#1F2937] hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                className={`flex-1 py-2.5 text-xs font-bold rounded-xl ${
+                  isDark ? 'bg-[#1F2937] hover:bg-slate-700 text-slate-300' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                }`}
               >
                 Garder la course
               </button>

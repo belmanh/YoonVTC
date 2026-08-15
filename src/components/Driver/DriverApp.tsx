@@ -181,13 +181,9 @@ export const DriverApp: React.FC<DriverAppProps> = ({
     },
   ]);
 
-  // Theme state (sombre/clair automatique basé sur l'heure locale)
-  const [isThemeAuto, setIsThemeAuto] = useState<boolean>(true);
-  const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
-    const hour = new Date().getHours();
-    // De nuit (19h à 7h) -> dark, sinon -> light
-    return (hour < 7 || hour >= 19) ? 'dark' : 'light';
-  });
+  // Theme state (signature thème sombre bleu & rose par défaut, avec option manuel)
+  const [isThemeAuto, setIsThemeAuto] = useState<boolean>(false);
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
 
   // Mettre à jour automatiquement le thème toutes les minutes si en mode auto
   useEffect(() => {
@@ -449,17 +445,17 @@ export const DriverApp: React.FC<DriverAppProps> = ({
     setShowPayoutModal(false);
   };
 
-  // Dynamic theme-aware classes
+  // Dynamic theme-aware classes with high-contrast text and signature Yoon styling
   const isDark = themeMode === 'dark';
-  const themeBgMain = isDark ? 'bg-[#090b14] text-slate-100' : 'bg-slate-50 text-slate-800';
-  const themeBgHeader = isDark ? 'bg-[#111827]/95 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeTextMain = isDark ? 'text-slate-100' : 'text-slate-900';
-  const themeTextMuted = isDark ? 'text-slate-400' : 'text-slate-500';
-  const themeBgBandeau = isDark ? 'bg-[#090b14] border-slate-800/80' : 'bg-slate-100 border-slate-200';
-  const themeBgIndicator = isDark ? 'bg-[#111827]/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeTabs = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeCard = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeNestedCard = isDark ? 'bg-[#090b14] border-slate-800/60' : 'bg-slate-50 border-slate-200';
+  const themeBgMain = isDark ? 'bg-[#090b14] text-slate-100' : 'bg-slate-100 text-slate-900';
+  const themeBgHeader = isDark ? 'bg-[#111827]/95 border-slate-800' : 'bg-white border-slate-300 text-slate-900 shadow-md';
+  const themeTextMain = isDark ? 'text-slate-100' : 'text-slate-900 font-bold';
+  const themeTextMuted = isDark ? 'text-slate-400' : 'text-slate-600 font-semibold';
+  const themeBgBandeau = isDark ? 'bg-[#090b14] border-slate-800/80' : 'bg-slate-200/80 border-slate-300 text-slate-900';
+  const themeBgIndicator = isDark ? 'bg-[#111827]/90 border-slate-800' : 'bg-white border-slate-300 text-slate-900 shadow-sm';
+  const themeTabs = isDark ? 'bg-[#111827] border-slate-800' : 'bg-slate-200 border-slate-300 text-slate-900 shadow-sm';
+  const themeCard = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-300 text-slate-900 shadow-md';
+  const themeNestedCard = isDark ? 'bg-[#090b14] border-slate-800/60' : 'bg-slate-100 border-slate-300 text-slate-900';
 
   return (
     <div className={`flex flex-col h-full relative overflow-hidden ${themeBgMain}`}>
@@ -693,6 +689,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 selectedDestination={activeRide?.destination || null}
                 activeRide={activeRide}
                 assignedDriverLocation={assignedDriverLocation || driver.currentLocation}
+                theme="light"
               />
             </div>
 
@@ -1383,22 +1380,22 @@ export const DriverApp: React.FC<DriverAppProps> = ({
         />
       )}
       {showRechargeModal && (
-        <div className="absolute inset-0 bg-[#090b14]/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className={`absolute inset-0 z-50 p-4 flex flex-col justify-center items-center backdrop-blur-md ${themeOverlay}`}>
+          <div className={`w-full max-w-sm border rounded-2xl p-5 shadow-2xl space-y-4 ${themeCard}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-500">
                   <PlusCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-100">Recharger mon Crédit</h3>
-                  <p className="text-[10px] text-slate-400">Modèle Yango • Prélèvement commission 15%</p>
+                  <h3 className={`font-bold text-sm ${themeTextMain}`}>Recharger mon Crédit</h3>
+                  <p className={`text-[10px] ${themeTextMuted}`}>Modèle Yango • Prélèvement commission 15%</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowRechargeModal(false)}
-                className="p-1 text-slate-400 hover:text-white"
+                className={`p-1 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1406,9 +1403,9 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
             {/* Alerte si le chauffeur est bloqué par solde < 1 000 FCFA */}
             {showLowBalanceWarning && (
-              <div className="p-2.5 bg-rose-950/70 border border-rose-500/50 rounded-xl text-xs text-rose-200 space-y-1">
-                <p className="font-bold flex items-center gap-1 text-rose-300">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+              <div className="p-2.5 bg-rose-500/10 border border-rose-500/40 rounded-xl text-xs text-rose-600 space-y-1">
+                <p className="font-bold flex items-center gap-1 text-rose-600">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
                   Solde minimum de 1 000 FCFA requis
                 </p>
                 <p className="text-[10px] leading-tight">
@@ -1419,18 +1416,18 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
             {/* Choix du Moyen de Paiement : Wave ou Orange Money */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400">Moyen de paiement mobile</label>
+              <label className={`text-xs font-semibold ${themeTextMuted}`}>Moyen de paiement mobile</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setRechargeMethod('wave')}
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
                     rechargeMethod === 'wave'
-                      ? 'bg-sky-950/70 border-sky-400 text-sky-300 shadow-md ring-1 ring-sky-400/50'
-                      : 'bg-[#090b14] border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-sky-500/20 border-sky-500 text-sky-600 shadow-md ring-1 ring-sky-500'
+                      : isDark ? 'bg-[#090b14] border-slate-800 text-slate-400' : 'bg-slate-100 border-slate-300 text-slate-700'
                   }`}
                 >
-                  <Smartphone className="w-4 h-4 text-sky-400" />
+                  <Smartphone className="w-4 h-4 text-sky-500" />
                   <span>Wave (0% frais)</span>
                 </button>
 
@@ -1439,11 +1436,11 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   onClick={() => setRechargeMethod('orange_money')}
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
                     rechargeMethod === 'orange_money'
-                      ? 'bg-orange-950/70 border-orange-400 text-orange-300 shadow-md ring-1 ring-orange-400/50'
-                      : 'bg-[#090b14] border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-orange-500/20 border-orange-500 text-orange-600 shadow-md ring-1 ring-orange-500'
+                      : isDark ? 'bg-[#090b14] border-slate-800 text-slate-400' : 'bg-slate-100 border-slate-300 text-slate-700'
                   }`}
                 >
-                  <CreditCard className="w-4 h-4 text-orange-400" />
+                  <CreditCard className="w-4 h-4 text-orange-500" />
                   <span>Orange Money</span>
                 </button>
               </div>
@@ -1451,7 +1448,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
             {/* Montants Prédéfinis Rapides */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400">Sélectionner un montant</label>
+              <label className={`text-xs font-semibold ${themeTextMuted}`}>Sélectionner un montant</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {[2000, 5000, 10000, 25000, 50000].map((amt) => (
                   <button
@@ -1461,7 +1458,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     className={`py-2 rounded-lg text-xs font-bold font-mono transition-all ${
                       rechargeAmount === amt
                         ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-[#090b14] border border-slate-800 text-slate-300 hover:bg-[#1F2937]'
+                        : isDark ? 'bg-[#090b14] border border-slate-800 text-slate-300 hover:bg-[#1F2937]' : 'bg-slate-100 border border-slate-300 text-slate-800 hover:bg-slate-200'
                     }`}
                   >
                     {amt >= 1000 ? `${amt / 1000}k F` : `${amt} F`}
@@ -1472,9 +1469,9 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
             {/* Saisie Montant Personnalisé */}
             <div className="space-y-1">
-              <div className="flex justify-between text-xs text-slate-400">
+              <div className={`flex justify-between text-xs ${themeTextMuted}`}>
                 <label className="font-semibold">Montant exact (FCFA)</label>
-                <span className="text-blue-400 font-mono font-bold">
+                <span className="text-blue-500 font-mono font-bold">
                   ~{Math.floor(rechargeAmount / 350)} courses
                 </span>
               </div>
@@ -1484,26 +1481,26 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 onChange={(e) => setRechargeAmount(Math.max(500, Number(e.target.value)))}
                 min={500}
                 step={500}
-                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-base font-black text-blue-400 font-mono focus:border-blue-500 outline-none"
+                className={`w-full px-3 py-2 rounded-xl text-base font-black font-mono focus:border-blue-500 outline-none ${themeInput}`}
               />
             </div>
 
             {/* Numéro de téléphone mobile */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400">Numéro de téléphone (+221)</label>
+              <label className={`text-xs font-semibold ${themeTextMuted}`}>Numéro de téléphone (+221)</label>
               <input
                 type="text"
                 value={rechargePhone}
                 onChange={(e) => setRechargePhone(e.target.value)}
-                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-xs text-slate-100 font-mono focus:border-blue-500 outline-none"
+                className={`w-full px-3 py-2 rounded-xl text-xs font-mono focus:border-blue-500 outline-none ${themeInput}`}
                 placeholder="+221 77 123 45 67"
               />
             </div>
 
             {/* Message de confirmation de recharge */}
             {rechargeSuccessMsg && (
-              <div className="p-3 bg-blue-950/90 border border-blue-500/60 rounded-xl text-xs text-blue-200 flex items-center space-x-2 animate-fadeIn">
-                <CheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
+              <div className="p-3 bg-blue-500/10 border border-blue-500/40 rounded-xl text-xs text-blue-600 font-bold flex items-center space-x-2 animate-fadeIn">
+                <CheckCircle className="w-4 h-4 text-blue-500 shrink-0" />
                 <span>{rechargeSuccessMsg}</span>
               </div>
             )}
@@ -1513,7 +1510,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               <button
                 type="button"
                 onClick={() => setShowRechargeModal(false)}
-                className="flex-1 py-2.5 bg-[#1F2937] text-slate-300 text-xs font-semibold rounded-xl"
+                className={`flex-1 py-2.5 text-xs font-semibold rounded-xl ${isDark ? 'bg-[#1F2937] text-slate-300' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'}`}
               >
                 Annuler
               </button>
