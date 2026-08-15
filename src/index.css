@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Hide scrollbars globally across the app while keeping scroll functionality */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes radar-sweep {
   0% {
     transform: rotate(0deg);

@@ -584,7 +584,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               {isBalanceCritical ? (
                 <span className="text-rose-400 font-semibold">Solde &lt; 1 000 F : Bloqué (Recharge requise)</span>
               ) : isBalanceLow ? (
-                <span className="text-amber-400">Solde faible (~{estimatedRidesCount} courses possibles)</span>
+                <span className="text-amber-400">Solde faible (~{estimatedRidesCount} courses)</span>
               ) : (
                 <span className="text-emerald-400/90 font-medium">Solde actif (~{estimatedRidesCount} courses) • Com. 15%</span>
               )}
@@ -592,81 +592,25 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           </div>
         </div>
 
-        {/* Bouton Rapide Recharge Wave / OM */}
-        <button
-          onClick={() => setShowRechargeModal(true)}
-          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all shrink-0 active:scale-95"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
-          <span>Recharger</span>
-        </button>
-      </div>
-
-      {/* BANDEAU INDICATEUR RÉSEAU DISCRET & SYNCHRONISATION (OFFLINE FIRST) */}
-      <div
-        className={`px-3 py-1.5 border-b flex items-center justify-between text-xs transition-colors z-10 ${
-          !syncStats.isOnline
-            ? 'bg-amber-950/95 border-amber-500/50 text-amber-200 shadow-sm'
-            : syncStats.pendingCount > 0
-            ? 'bg-sky-950/90 border-sky-500/40 text-sky-200'
-            : themeBgIndicator
-        }`}
-      >
-        <div className="flex items-center space-x-2">
-          {!syncStats.isOnline ? (
-            <div className="flex items-center space-x-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-              </span>
-              <div className="flex items-center gap-1.5 font-bold text-amber-300">
-                <CloudOff className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Mode hors-ligne : données sauvegardées localement</span>
-              </div>
-            </div>
-          ) : syncStats.pendingCount > 0 ? (
-            <div className="flex items-center space-x-1.5 text-sky-300 font-semibold">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400" />
-              <span>Connexion rétablie : auto-synchronisation en cours...</span>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-1.5 text-emerald-400 text-[11px] font-medium">
-              <Wifi className="w-3.5 h-3.5" />
-              <span>Réseau Dakar 4G/5G Connecté</span>
-            </div>
-          )}
-
-          {syncStats.pendingCount > 0 && (
-            <span className="px-1.5 py-0.2 bg-amber-900/80 border border-amber-500/30 text-amber-200 rounded text-[10px] font-mono font-bold">
-              {syncStats.pendingCount} en attente (GPS: {syncStats.pendingLocationsCount})
-            </span>
-          )}
-        </div>
-
-        {/* Boutons d'action et diagnostic hors-ligne */}
+        {/* Bouton Rapide Recharge Wave / OM & Mini Sync */}
         <div className="flex items-center space-x-1.5">
-          {/* Bouton de bascule simulation (Tunnel / VDN) */}
-          <button
-            onClick={handleToggleSimulation}
-            className={`px-2 py-1 rounded-lg text-[10px] font-bold border flex items-center gap-1 transition-all ${
-              syncStats.isSimulatedOffline
-                ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-400 shadow-sm'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-            }`}
-            title="Simuler une perte de réseau pour tester la résilience hors-ligne"
-          >
-            {syncStats.isSimulatedOffline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3 text-slate-400" />}
-            <span>{syncStats.isSimulatedOffline ? 'Simu Déco : ON' : 'Tester Hors-ligne'}</span>
-          </button>
+          {(!syncStats.isOnline || syncStats.pendingCount > 0 || syncStats.isSimulatedOffline) && (
+            <button
+              onClick={() => setShowOfflineModal(true)}
+              className="px-2 py-1 bg-amber-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 animate-pulse"
+              title="Hors-ligne / Synchro en attente"
+            >
+              <CloudOff className="w-3 h-3" />
+              <span>{syncStats.pendingCount > 0 ? `Sync (${syncStats.pendingCount})` : 'Hors-ligne'}</span>
+            </button>
+          )}
 
-          {/* Bouton Synchro ou Diagnostic */}
           <button
-            onClick={() => setShowOfflineModal(true)}
-            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold border border-slate-700 flex items-center gap-1"
-            title="Consulter les détails du stockage local et forcer la synchronisation"
+            onClick={() => setShowRechargeModal(true)}
+            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all shrink-0 active:scale-95"
           >
-            <Database className="w-3 h-3 text-emerald-400" />
-            <span>Sync ({syncStats.pendingCount})</span>
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Recharger</span>
           </button>
         </div>
       </div>
@@ -753,7 +697,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
 
             {/* Bottom Actions for Driver */}
-            <div className={`w-full flex-1 border-t rounded-t-2xl shadow-2xl p-4 overflow-y-auto flex flex-col justify-between ${themeCard}`}>
+            <div className={`w-full flex-1 border-t rounded-t-2xl shadow-2xl p-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col justify-between ${themeCard}`}>
               
               {/* Télémétrie GPS Live Banner */}
               {isOnline && (
@@ -875,7 +819,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   <div>
                     <h4 className={`font-bold text-sm ${themeTextMain}`}>Radar de Dispatch Actif</h4>
                     <p className={`text-xs mt-0.5 ${themeTextMuted}`}>
-                      En attente de demandes de course dans votre zone (Dakar & VDN)...
+                      En attente de demandes de course...
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 w-full pt-2">

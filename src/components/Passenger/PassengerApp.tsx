@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Car,
   CarFront,
@@ -28,6 +28,7 @@ import {
   FileText,
   Info,
   ShieldCheck,
+  Users,
 } from 'lucide-react';
 import {
   GeoLocation,
@@ -42,7 +43,7 @@ import {
 import { SENEGAL_LOCATIONS, PRICING_RULES } from '../../data/senegalData';
 import { calculateRidePrice } from '../../services/pricingEngine';
 import { SenegalPaymentService } from '../../services/waveOrangeMoneyService';
-import { detectPassengerGpsLocation } from '../../services/gpsService';
+import { detectPassengerGpsLocation, haversineDistanceMeters } from '../../services/gpsService';
 import { DakarMapView } from '../Map/DakarMapView';
 import { VoiceNoteRecorder, VoiceNotePlayerCard } from '../Audio/VoiceNotePlayer';
 import { SosEmergencyModal } from '../Safety/SosEmergencyModal';
@@ -162,6 +163,8 @@ const INITIAL_PAST_RIDES: PastRideRecord[] = [
     routeCoordinates: [],
     currentRouteIndex: 0,
     landmarkHint: 'Devant la pharmacie des Almadies',
+    ratingGiven: 5,
+    feedbackGiven: 'Excellent trajet ! Chauffeur très courtois et véhicule impeccable.',
   },
   {
     id: 'SN-3902',
@@ -234,6 +237,8 @@ const INITIAL_PAST_RIDES: PastRideRecord[] = [
     currentRouteIndex: 0,
     isFixedPricePackage: true,
     fixedPackageName: 'Forfait VIP Dakar ↔ AIBD',
+    ratingGiven: 5,
+    feedbackGiven: 'Trajet fluide et rapide vers l’AIBD, très professionnel.',
   },
 ];
 
@@ -247,8 +252,17 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   onRateRide,
   onTriggerSos,
 }) => {
-  const [pickup, setPickup] = useState<GeoLocation>(SENEGAL_LOCATIONS[1]); // Almadies
+  const [pickup, setPickup] = useState<GeoLocation>(SENEGAL_LOCATIONS[1]); // Almadies (fallback initial)
   const [destination, setDestination] = useState<GeoLocation>(SENEGAL_LOCATIONS[0]); // Plateau
+
+  // Auto-détection de la position GPS actuelle du passager comme point de départ prioritaire
+  useEffect(() => {
+    detectPassengerGpsLocation().then((res) => {
+      if (res && res.location) {
+        setPickup(res.location);
+      }
+    }).catch(() => {});
+  }, []);
   const [category, setCategory] = useState<VehicleCategory>('standard');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wave');
   const [isSearchingLocation, setIsSearchingLocation] = useState<'pickup' | 'destination' | null>(null);
@@ -270,6 +284,49 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
   const [showTripDetailsModal, setShowTripDetailsModal] = useState<boolean>(false);
   const [pastRides, setPastRides] = useState<PastRideRecord[]>(INITIAL_PAST_RIDES);
+
+  // Lieux favoris enregistrés (Domicile, Travail, etc.)
+  const [favoritePlaces, setFavoritePlaces] = useState<Array<{ id: string; name: string; icon: string; location: GeoLocation }>>(() => {
+    try {
+      const saved = localStorage.getItem('yoon_passenger_favorites');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      { id: 'fav_1', name: 'Domicile', icon: '🏠', location: SENEGAL_LOCATIONS[1] },
+      { id: 'fav_2', name: 'Travail / Bureau', icon: '💼', location: SENEGAL_LOCATIONS[0] },
+      { id: 'fav_3', name: 'Aéroport AIBD', icon: '✈️', location: SENEGAL_LOCATIONS[4] },
+      { id: 'fav_4', name: 'Almadies Plage', icon: '🏖️', location: SENEGAL_LOCATIONS[3] },
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('yoon_passenger_favorites', JSON.stringify(favoritePlaces));
+    } catch {}
+  }, [favoritePlaces]);
+
+  // Notification d'approche chauffeur (< 500m)
+  const [showApproachingNotification, setShowApproachingNotification] = useState(false);
+  const [hasNotifiedUnder500m, setHasNotifiedUnder500m] = useState(false);
+
+  useEffect(() => {
+    if (activeRide && (activeRide.status === 'driver_assigned' || activeRide.status === 'driver_arrived') && assignedDriverLocation && !hasNotifiedUnder500m) {
+      const distMeters = haversineDistanceMeters(
+        assignedDriverLocation.lat,
+        assignedDriverLocation.lng,
+        activeRide.pickup.lat,
+        activeRide.pickup.lng
+      );
+      if (distMeters <= 500 || activeRide.status === 'driver_arrived') {
+        setShowApproachingNotification(true);
+        setHasNotifiedUnder500m(true);
+      }
+    }
+    if (!activeRide) {
+      setHasNotifiedUnder500m(false);
+      setShowApproachingNotification(false);
+    }
+  }, [assignedDriverLocation, activeRide?.status]);
 
   // Rating & Review State
   const [ratingVal, setRatingVal] = useState(5);
@@ -332,11 +389,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   };
 
   const handleConfirmBooking = () => {
-    if (paymentMethod === 'wave' || paymentMethod === 'orange_money') {
-      setShowPaymentModal(true);
-    } else {
-      executeRideRequest();
-    }
+    executeRideRequest();
   };
 
   const executeRideRequest = () => {
@@ -451,6 +504,32 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
         </div>
       </div>
 
+      {/* Notification Système Simulée : Chauffeur à < 500m */}
+      {showApproachingNotification && activeRide && activeRide.driver && (
+        <div className="absolute top-16 left-4 right-4 z-30 bg-slate-900/95 backdrop-blur-xl border-2 border-emerald-400 rounded-2xl shadow-2xl p-3.5 flex items-center space-x-3 animate-bounce">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400 shrink-0">
+            <Car className="w-5 h-5 animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">🔔 Notification Yoon VTC</span>
+              <button 
+                onClick={() => setShowApproachingNotification(false)}
+                className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs font-bold text-white mt-0.5">
+              Votre chauffeur <span className="text-emerald-400">{activeRide.driver.fullName}</span> est à moins de 500m !
+            </p>
+            <p className="text-[10px] text-slate-300">
+              Préparez-vous au départ : {activeRide.pickup.quarter}. Véhicule : {activeRide.driver.vehicle.brand} ({activeRide.driver.vehicle.plateNumber})
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Map & Panels Area (Map in background, card floating at bottom) */}
       <div className="flex-1 relative overflow-hidden flex flex-col justify-end">
         {/* Map View - full-screen background */}
@@ -500,6 +579,47 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 </div>
               </div>
 
+              {/* Raccourcis Trajets Favoris & Trafic Dakar */}
+              <div className="space-y-1.5 pt-0.5">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-slate-400 font-bold uppercase tracking-wider">Favoris à Dakar</span>
+                  <span className={`px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
+                    ((new Date().getHours() >= 7 && new Date().getHours() <= 10) || (new Date().getHours() >= 17 && new Date().getHours() <= 20))
+                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                      : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-current"></span>
+                    <span>
+                      {((new Date().getHours() >= 7 && new Date().getHours() <= 10) || (new Date().getHours() >= 17 && new Date().getHours() <= 20))
+                        ? 'Heures de pointe • Trafic dense'
+                        : 'Trafic fluide à Dakar'}
+                    </span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {[
+                    { name: '🏠 Bureau ➔ Almadies', p: SENEGAL_LOCATIONS[0], d: SENEGAL_LOCATIONS[1] },
+                    { name: '✈️ Dakar ➔ AIBD Aéroport', p: SENEGAL_LOCATIONS[1], d: SENEGAL_LOCATIONS[4] },
+                    { name: '🏖️ Ngor ➔ Almadies', p: SENEGAL_LOCATIONS[3], d: SENEGAL_LOCATIONS[1] },
+                    { name: '🌆 Plateau ➔ Mermoz', p: SENEGAL_LOCATIONS[0], d: SENEGAL_LOCATIONS[2] },
+                  ].map((fav, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setPickup(fav.p);
+                        setDestination(fav.d);
+                        setSelectedFixedPackage(null);
+                      }}
+                      className="px-2.5 py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[11px] font-semibold text-slate-300 shrink-0 transition-all active:scale-95 flex items-center gap-1"
+                    >
+                      <span>{fav.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Sélection des Gammes de Véhicules en Ligne Horizontale Défilante */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -530,25 +650,28 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                       <div
                         key={catKey}
                         onClick={() => setCategory(catKey)}
-                        className={`p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between shrink-0 w-36 snap-start active:scale-[0.98] ${
+                        className={`p-2 rounded-xl border cursor-pointer transition-all flex flex-col justify-between shrink-0 w-36 snap-start active:scale-[0.98] ${
                           isSelected
                             ? 'bg-emerald-950/40 border-emerald-400 ring-1 ring-emerald-400 text-white shadow-lg shadow-emerald-950/40'
                             : 'bg-slate-950/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-1.5">
-                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-emerald-400" />}
-                            {catKey === 'standard' && <CarFront className="w-3.5 h-3.5 text-sky-400" />}
-                            {catKey === 'confort' && <Crown className="w-3.5 h-3.5 text-amber-400" />}
-                            {catKey === 'interurbain' && <MapPin className="w-3.5 h-3.5 text-indigo-400" />}
-                            <span className="text-[11px] font-bold text-slate-100">{rule.name.split(' ')[1] || rule.name}</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1 truncate">
+                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                            {catKey === 'standard' && <CarFront className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+                            {catKey === 'confort' && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                            {catKey === 'interurbain' && <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                            <span className="text-[11px] font-bold text-slate-100 truncate">{rule.name.split(' ')[1] || rule.name}</span>
                           </div>
+                          <span className="text-[10px] text-slate-300 bg-slate-900/90 px-1.5 py-0.5 rounded-md shrink-0 flex items-center gap-1 font-mono">
+                            <Users className="w-3 h-3 text-emerald-400" />
+                            <span>{rule.capacity.replace('places', '').trim()}</span>
+                          </span>
                         </div>
 
-                        <div className="flex flex-col mt-1">
-                          <span className="text-[9px] text-slate-400">{rule.capacity}</span>
-                          <span className={`text-xs font-black mt-0.5 ${isSelected ? 'text-emerald-400' : 'text-slate-200'}`}>
+                        <div className="flex items-baseline justify-between mt-1 pt-1 border-t border-slate-800/40">
+                          <span className={`text-xs font-black ${isSelected ? 'text-emerald-400' : 'text-slate-200'}`}>
                             {SenegalPaymentService.formatFCFA(catEstimate.breakdown.totalFare)}
                           </span>
                         </div>
@@ -754,7 +877,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               {/* Bouton Reçu Numérique Officiel */}
               <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400">Total réglé ({activeRide.paymentMethod.toUpperCase()}) :</span>
+                  <span className="text-slate-400">Total réglé :</span>
                   <span className="font-black text-emerald-400 text-sm font-mono">
                     {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}
                   </span>
@@ -937,7 +1060,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   </div>
                 )}
                 <div className="border-t border-slate-800/60 pt-2 flex justify-between font-bold text-sm">
-                  <span className="text-white">Total estimé ({paymentMethod.toUpperCase()})</span>
+                  <span className="text-white">Total estimé</span>
                   <span className="text-emerald-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
                 </div>
               </div>
@@ -1063,6 +1186,32 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
               autoFocus
             />
+          </div>
+
+          {/* Raccourcis Favoris Enregistrés */}
+          <div className="mb-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">
+              <span>⭐ Vos Lieux Favoris</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {favoritePlaces.map((fav) => (
+                <div
+                  key={fav.id}
+                  onClick={() => handleSelectLocation(fav.location)}
+                  className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer flex items-center space-x-2 transition-all active:scale-95"
+                >
+                  <span className="text-base">{fav.icon}</span>
+                  <div className="flex-1 truncate">
+                    <p className="text-xs font-bold text-slate-200 truncate">{fav.name}</p>
+                    <p className="text-[9px] text-slate-400 truncate">{fav.location.quarter}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">
+            Tous les lieux à Dakar
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1">

@@ -208,6 +208,8 @@ function YoonVtcApp() {
       acceptedAt: new Date().toISOString(),
     });
 
+    setIsSimulatingMovement(true);
+
     setDrivers((prev) =>
       prev.map((d) => (d.id === activeDriver.id ? { ...d, status: 'busy' } : d))
     );

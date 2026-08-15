@@ -33,13 +33,21 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
   const [selectedRideForReceipt, setSelectedRideForReceipt] = useState<PastRideRecord | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'interurbain' | 'dakar'>('all');
 
-  const filteredRides = pastRides.filter((r) => {
+  const MAX_RETENTION_DAYS = 90;
+  const now = Date.now();
+  const validPastRides = pastRides.filter((r) => {
+    const rideTime = new Date(r.createdAt).getTime();
+    const diffDays = (now - rideTime) / (1000 * 60 * 60 * 24);
+    return diffDays <= MAX_RETENTION_DAYS;
+  });
+
+  const filteredRides = validPastRides.filter((r) => {
     if (filterType === 'interurbain') return r.isFixedPricePackage || r.distanceKm > 25;
     if (filterType === 'dakar') return !r.isFixedPricePackage && r.distanceKm <= 25;
     return true;
   });
 
-  const totalSpentOrEarned = pastRides.reduce((sum, r) => sum + r.pricing.totalFare, 0);
+  const totalSpentOrEarned = validPastRides.reduce((sum, r) => sum + r.pricing.totalFare, 0);
 
   return (
     <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 p-4 flex items-center justify-center animate-fadeIn">
@@ -77,7 +85,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
             </p>
           </div>
           <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs font-bold text-slate-300 font-mono">
-            {pastRides.length} course{pastRides.length > 1 ? 's' : ''}
+            {validPastRides.length} course{validPastRides.length > 1 ? 's' : ''} (90j max)
           </span>
         </div>
 
@@ -89,7 +97,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
               filterType === 'all' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Toutes ({pastRides.length})
+            Toutes ({validPastRides.length})
           </button>
           <button
             onClick={() => setFilterType('interurbain')}
@@ -150,8 +158,20 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
                 <div className="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px] text-slate-500">
                   <div className="flex items-center space-x-2">
                     <span>{new Date(ride.createdAt).toLocaleDateString('fr-FR')}</span>
-                    <span>•</span>
-                    <span className="capitalize">{ride.paymentMethod}</span>
+                    {userRole === 'driver' && (
+                      <>
+                        <span>•</span>
+                        <span className="capitalize">{ride.paymentMethod}</span>
+                      </>
+                    )}
+                    {ride.ratingGiven && (
+                      <>
+                        <span>•</span>
+                        <span className="text-amber-400 font-bold flex items-center gap-0.5">
+                          ★ {ride.ratingGiven}/5
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <span className="text-emerald-400 font-bold group-hover:underline flex items-center gap-0.5">
