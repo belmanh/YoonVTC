@@ -27,6 +27,7 @@ interface DakarMapViewProps {
   interactive?: boolean;
   compact?: boolean;
   onGpsLocatePassenger?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 export const DakarMapView: React.FC<DakarMapViewProps> = ({
@@ -40,6 +41,7 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
   onMapClick,
   compact = false,
   onGpsLocatePassenger,
+  theme = 'light'
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -57,7 +59,11 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
 
   // Mode de rendu cartographique : 'leaflet' (CartoDB / OpenStreetMap) ou 'google' (Google Maps Platform)
   const [mapEngine, setMapEngine] = useState<'leaflet' | 'google'>(hasValidGoogleKey ? 'google' : 'leaflet');
-  const [tileStyle, setTileStyle] = useState<'voyager' | 'dark' | 'satellite'>('voyager');
+  const [tileStyle, setTileStyle] = useState<'voyager' | 'dark' | 'satellite'>(theme === 'light' ? 'voyager' : 'dark');
+
+  useEffect(() => {
+    setTileStyle(theme === 'light' ? 'voyager' : 'dark');
+  }, [theme]);
 
   // Calcul en direct de la distance et de l'ETA (temps d'arrivée)
   const routeEtaInfo: RouteEtaResult | null = useMemo(() => {
@@ -132,11 +138,11 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
         html: `
           <div class="relative flex items-center justify-center w-10 h-10 group cursor-pointer">
             <!-- Faisceau lumineux des phares -->
-            <div class="absolute w-6 h-12 bg-gradient-to-t from-emerald-400/20 to-transparent pointer-events-none origin-bottom transform -translate-y-4 rotate-[${heading}deg]"></div>
+            <div class="absolute w-6 h-12 bg-gradient-to-t from-blue-400/20 to-transparent pointer-events-none origin-bottom transform -translate-y-4 rotate-[${heading}deg]"></div>
             
             <!-- Corps de la voiture Uber-Style -->
-            <div class="w-8 h-8 rounded-xl bg-slate-900 border-2 border-emerald-400 shadow-xl flex items-center justify-center text-emerald-400 transform transition-transform duration-300 rotate-[${heading}deg]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400 fill-emerald-400/30" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-8 h-8 rounded-xl bg-slate-900 border-2 border-blue-400 shadow-xl flex items-center justify-center text-blue-400 transform transition-transform duration-300 rotate-[${heading}deg]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400 fill-blue-400/30" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
                 <circle cx="7" cy="17" r="2"/>
                 <circle cx="17" cy="17" r="2"/>
@@ -145,8 +151,8 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
             
             <!-- Signal GPS actif -->
             <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
             </span>
           </div>
         `,
@@ -158,7 +164,7 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
       marker.bindPopup(`
         <div class="p-2 text-slate-900 font-sans text-xs bg-white rounded-lg shadow-xl">
           <div class="flex items-center space-x-2">
-            <img src="${drv.avatar}" class="w-8 h-8 rounded-full border border-emerald-500" />
+            <img src="${drv.avatar}" class="w-8 h-8 rounded-full border border-blue-500" />
             <div>
               <p class="font-bold text-sm text-slate-900">${drv.fullName}</p>
               <p class="text-slate-600">${drv.vehicle.brand} ${drv.vehicle.model}</p>
@@ -166,7 +172,7 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
           </div>
           <div class="mt-1 pt-1 border-t border-slate-100 flex items-center justify-between">
             <span class="font-mono font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded text-[11px]">${drv.vehicle.plateNumber}</span>
-            <span class="text-emerald-700 font-bold">★ ${drv.rating.toFixed(1)}</span>
+            <span class="text-blue-700 font-bold">★ ${drv.rating.toFixed(1)}</span>
           </div>
         </div>
       `);
@@ -181,19 +187,19 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
         html: `
           <div class="relative flex items-center justify-center w-12 h-12">
             <!-- Onde radar autour du chauffeur assigné -->
-            <div class="absolute inset-0 rounded-full bg-emerald-400/30 animate-ping"></div>
-            <div class="absolute inset-1 rounded-full bg-emerald-500/20 animate-pulse"></div>
+            <div class="absolute inset-0 rounded-full bg-blue-400/30 animate-ping"></div>
+            <div class="absolute inset-1 rounded-full bg-blue-500/20 animate-pulse"></div>
             
             <!-- Véhicule actif -->
-            <div class="w-10 h-10 bg-slate-950 border-2 border-emerald-400 rounded-2xl shadow-2xl flex items-center justify-center text-emerald-400 z-10 transform rotate-[${heading}deg]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-emerald-400 text-emerald-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <div class="w-10 h-10 bg-slate-950 border-2 border-blue-400 rounded-2xl shadow-2xl flex items-center justify-center text-blue-400 z-10 transform rotate-[${heading}deg]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-blue-400 text-blue-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
                 <circle cx="7" cy="17" r="2"/>
                 <circle cx="17" cy="17" r="2"/>
               </svg>
             </div>
             
-            <div class="absolute -top-7 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase px-2 py-0.5 rounded-full shadow-lg border border-white/40 tracking-wider">
+            <div class="absolute -top-7 bg-blue-500 text-slate-950 font-black text-[10px] uppercase px-2 py-0.5 rounded-full shadow-lg border border-white/40 tracking-wider">
               En approche
             </div>
           </div>
@@ -212,19 +218,19 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
         html: `
           <div class="relative flex flex-col items-center justify-center">
             <!-- Ondes concentriques (Effet Onde) -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-emerald-500/25 animate-ripple-1 pointer-events-none"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-emerald-500/15 animate-ripple-2 pointer-events-none"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-emerald-500/10 animate-ripple-3 pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-blue-500/25 animate-ripple-1 pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-blue-500/15 animate-ripple-2 pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-blue-500/10 animate-ripple-3 pointer-events-none"></div>
             
             <!-- Badge Départ -->
-            <div class="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-black tracking-wider uppercase rounded-full shadow-xl mb-1 flex items-center gap-1 border border-emerald-400/50 z-20">
+            <div class="px-2.5 py-1 bg-blue-600 text-white text-[10px] font-black tracking-wider uppercase rounded-full shadow-xl mb-1 flex items-center gap-1 border border-blue-400/50 z-20">
               <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
               Départ
             </div>
             
             <!-- Pin Central Vert Walo -->
-            <div class="relative w-7 h-7 bg-slate-950 border-2 border-emerald-400 rounded-full shadow-2xl flex items-center justify-center text-emerald-400 z-20">
-              <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+            <div class="relative w-7 h-7 bg-slate-950 border-2 border-blue-400 rounded-full shadow-2xl flex items-center justify-center text-blue-400 z-20">
+              <div class="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
             </div>
           </div>
         `,
@@ -315,7 +321,7 @@ export const DakarMapView: React.FC<DakarMapViewProps> = ({
       {onGpsLocatePassenger && (
         <button
           onClick={onGpsLocatePassenger}
-          className="absolute bottom-4 right-4 z-[400] bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-full shadow-2xl border-2 border-slate-950 transition-all transform active:scale-95 flex items-center justify-center"
+          className="absolute bottom-4 right-4 z-[400] bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full shadow-2xl border-2 border-slate-950 transition-all transform active:scale-95 flex items-center justify-center"
           title="Détecter ma position GPS exacte (Dakar)"
         >
           <Compass className="w-5 h-5 animate-spin-slow" />

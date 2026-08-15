@@ -479,19 +479,19 @@ function YoonVtcApp() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 font-sans select-none overflow-hidden">
+    <div className="flex flex-col h-screen w-screen bg-[#090b14] text-slate-100 font-sans select-none overflow-hidden">
       
       {/* GLOBAL NAVBAR / NAVIGATION PRINCIPALE */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between z-30 shrink-0 shadow-lg">
+      <header className="h-14 bg-[#111827] border-b border-slate-800 px-4 flex items-center justify-between z-30 shrink-0 shadow-lg">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-900/40">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-900/40">
               Y
             </div>
             <div>
               <h1 className="font-extrabold text-sm text-slate-100 flex items-center gap-1.5">
                 Yoon VTC Sénégal
-                <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.2 rounded font-mono font-bold">
+                <span className="text-[10px] bg-blue-950 text-blue-400 border border-blue-500/40 px-1.5 py-0.2 rounded font-mono font-bold">
                   SÉNÉGAL 🇸🇳
                 </span>
               </h1>
@@ -500,11 +500,11 @@ function YoonVtcApp() {
         </div>
 
         {/* VUES SÉLECTEUR */}
-        <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+        <div className="flex items-center space-x-1 bg-[#090b14] p-1 rounded-xl border border-slate-800 text-xs">
           <button
             onClick={() => setActiveView('split')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-              activeView === 'split' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              activeView === 'split' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -514,7 +514,7 @@ function YoonVtcApp() {
           <button
             onClick={() => setActiveView('passenger')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-              activeView === 'passenger' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              activeView === 'passenger' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5 text-sky-400" />
@@ -524,7 +524,7 @@ function YoonVtcApp() {
           <button
             onClick={() => setActiveView('driver')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-              activeView === 'driver' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              activeView === 'driver' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Car className="w-3.5 h-3.5 text-amber-400" />
@@ -534,7 +534,7 @@ function YoonVtcApp() {
           <button
             onClick={() => setActiveView('admin')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-              activeView === 'admin' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              activeView === 'admin' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
@@ -544,7 +544,7 @@ function YoonVtcApp() {
           <button
             onClick={() => setActiveView('architecture')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 transition-all ${
-              activeView === 'architecture' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+              activeView === 'architecture' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Code2 className="w-3.5 h-3.5 text-rose-400" />
@@ -555,12 +555,12 @@ function YoonVtcApp() {
         {/* SECTION AUTHENTIFICATION SMS SÉNÉGAL (+221) */}
         <div className="flex items-center space-x-2">
           {currentUser || userProfile ? (
-            <div className="flex items-center gap-2 bg-slate-950 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <div className="flex items-center gap-2 bg-[#090b14] border border-blue-500/30 px-3 py-1.5 rounded-xl">
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
               <div className="text-left leading-none">
                 <p className="text-[11px] font-bold text-slate-100 flex items-center gap-1">
                   <span>{userProfile?.fullName || 'Utilisateur'}</span>
-                  <span className="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-1 rounded uppercase">
+                  <span className="text-[9px] bg-blue-950 text-blue-300 border border-blue-500/30 px-1 rounded uppercase">
                     {userProfile?.role === 'driver' ? 'Chauffeur' : 'Passager'}
                   </span>
                 </p>
@@ -579,7 +579,7 @@ function YoonVtcApp() {
           ) : (
             <button
               onClick={() => openAuthForRole('passenger')}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-900/30 transition-all"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Connexion SMS (+221)</span>
@@ -620,16 +620,16 @@ function YoonVtcApp() {
       />
 
       {/* MAIN CONTAINER CONTENT ACCORDING TO ACTIVE VIEW */}
-      <main className="flex-1 relative overflow-hidden flex bg-slate-950">
+      <main className="flex-1 relative overflow-hidden flex bg-[#090b14]">
         
         {/* VUE SPLIT : DOUBLE SMARTPHONE CÔTE À CÔTE */}
         {activeView === 'split' && (
           <div className="flex-1 flex items-center justify-center p-4 gap-6 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
             {/* Smartphone Passager */}
-            <div className="w-[410px] h-[730px] rounded-[36px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700 flex flex-col shrink-0 relative">
+            <div className="w-[410px] h-[730px] rounded-[36px] bg-[#111827] p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700 flex flex-col shrink-0 relative">
               {/* Notch Smartphone */}
-              <div className="w-32 h-4 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-700"></div>
+              <div className="w-32 h-4 bg-[#1F2937] rounded-full mx-auto mb-2 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#090b14] border border-slate-700"></div>
               </div>
               <div className="flex-1 rounded-[24px] overflow-hidden flex flex-col border border-slate-800">
                 <PassengerApp
@@ -646,10 +646,10 @@ function YoonVtcApp() {
             </div>
 
             {/* Smartphone Chauffeur */}
-            <div className="w-[410px] h-[730px] rounded-[36px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700 flex flex-col shrink-0 relative">
+            <div className="w-[410px] h-[730px] rounded-[36px] bg-[#111827] p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700 flex flex-col shrink-0 relative">
               {/* Notch Smartphone */}
-              <div className="w-32 h-4 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-700"></div>
+              <div className="w-32 h-4 bg-[#1F2937] rounded-full mx-auto mb-2 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#090b14] border border-slate-700"></div>
               </div>
               <div className="flex-1 rounded-[24px] overflow-hidden flex flex-col border border-slate-800">
                 <DriverApp
@@ -673,8 +673,8 @@ function YoonVtcApp() {
 
         {/* VUE PLEIN ÉCRAN PASSAGER */}
         {activeView === 'passenger' && (
-          <div className="flex-1 flex items-center justify-center p-4 bg-slate-950">
-            <div className="w-full max-w-md h-[740px] rounded-[32px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800 flex flex-col">
+          <div className="flex-1 flex items-center justify-center p-4 bg-[#090b14]">
+            <div className="w-full max-w-md h-[740px] rounded-[32px] bg-[#111827] p-3 shadow-2xl border-4 border-slate-800 flex flex-col">
               <div className="flex-1 rounded-[24px] overflow-hidden flex flex-col border border-slate-800">
                 <PassengerApp
                   passenger={passenger}
@@ -693,8 +693,8 @@ function YoonVtcApp() {
 
         {/* VUE PLEIN ÉCRAN CHAUFFEUR */}
         {activeView === 'driver' && (
-          <div className="flex-1 flex items-center justify-center p-4 bg-slate-950">
-            <div className="w-full max-w-md h-[740px] rounded-[32px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800 flex flex-col">
+          <div className="flex-1 flex items-center justify-center p-4 bg-[#090b14]">
+            <div className="w-full max-w-md h-[740px] rounded-[32px] bg-[#111827] p-3 shadow-2xl border-4 border-slate-800 flex flex-col">
               <div className="flex-1 rounded-[24px] overflow-hidden flex flex-col border border-slate-800">
                 <DriverApp
                   driver={activeDriver}

@@ -451,15 +451,15 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
   // Dynamic theme-aware classes
   const isDark = themeMode === 'dark';
-  const themeBgMain = isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800';
-  const themeBgHeader = isDark ? 'bg-slate-900/95 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeBgMain = isDark ? 'bg-[#090b14] text-slate-100' : 'bg-slate-50 text-slate-800';
+  const themeBgHeader = isDark ? 'bg-[#111827]/95 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
   const themeTextMain = isDark ? 'text-slate-100' : 'text-slate-900';
   const themeTextMuted = isDark ? 'text-slate-400' : 'text-slate-500';
-  const themeBgBandeau = isDark ? 'bg-slate-950 border-slate-800/80' : 'bg-slate-100 border-slate-200';
-  const themeBgIndicator = isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeTabs = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeCard = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
-  const themeNestedCard = isDark ? 'bg-slate-950 border-slate-800/60' : 'bg-slate-50 border-slate-200';
+  const themeBgBandeau = isDark ? 'bg-[#090b14] border-slate-800/80' : 'bg-slate-100 border-slate-200';
+  const themeBgIndicator = isDark ? 'bg-[#111827]/90 border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeTabs = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeCard = isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200 shadow-sm';
+  const themeNestedCard = isDark ? 'bg-[#090b14] border-slate-800/60' : 'bg-slate-50 border-slate-200';
 
   return (
     <div className={`flex flex-col h-full relative overflow-hidden ${themeBgMain}`}>
@@ -470,23 +470,23 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             <img
               src={driver.avatar}
               alt={driver.fullName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400"
+              className="w-10 h-10 rounded-full object-cover border-2 border-blue-400"
             />
             <span
               className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDark ? 'border-slate-900' : 'border-white'} ${
-                isOnline ? 'bg-emerald-500' : 'bg-slate-500'
+                isOnline ? 'bg-blue-500' : 'bg-slate-500'
               }`}
             ></span>
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
               <h3 className={`text-sm font-bold ${themeTextMain}`}>{driver.fullName}</h3>
-              <span className="text-[10px] bg-slate-800 text-amber-400 px-1.5 py-0.2 rounded font-bold">
+              <span className="text-[10px] bg-[#1F2937] text-amber-400 px-1.5 py-0.2 rounded font-bold">
                 ★ {driver.rating.toFixed(1)}
               </span>
             </div>
             <p className={`text-[11px] font-mono ${themeTextMuted}`}>
-              {driver.vehicle.brand} {driver.vehicle.model} • <span className="text-emerald-400 font-bold">{driver.vehicle.plateNumber}</span>
+              {driver.vehicle.brand} {driver.vehicle.model} • <span className="text-blue-400 font-bold">{driver.vehicle.plateNumber}</span>
             </p>
           </div>
         </div>
@@ -517,7 +517,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             }}
             className={`p-1.5 rounded-xl border flex items-center gap-1 transition-all ${
               isDark 
-                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+                ? 'bg-[#1F2937] border-slate-700 text-amber-400 hover:bg-slate-700' 
                 : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
             }`}
             title={isThemeAuto ? "Thème Auto basé sur l'heure locale (Clic pour forcer, double-clic pour restaurer)" : "Thème Manuel (Double-clic pour restaurer Auto)"}
@@ -538,11 +538,11 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               onClick={handleToggleOnlineAttempt}
               className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all shadow-md ${
                 isOnline
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30'
                   : isBalanceCritical
                   ? 'bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300'
                   : isDark
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+                  ? 'bg-[#1F2937] hover:bg-slate-700 text-slate-400 border border-slate-700'
                   : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300'
               }`}
             >
@@ -562,7 +562,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 ? 'bg-rose-500 animate-ping'
                 : isBalanceLow
                 ? 'bg-amber-400'
-                : 'bg-emerald-400'
+                : 'bg-blue-400'
             }`}
           />
           <div>
@@ -574,7 +574,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     ? 'text-rose-400'
                     : isBalanceLow
                     ? 'text-amber-400'
-                    : 'text-emerald-400'
+                    : 'text-blue-400'
                 }`}
               >
                 {SenegalPaymentService.formatFCFA(driver.walletBalance)}
@@ -586,7 +586,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               ) : isBalanceLow ? (
                 <span className="text-amber-400">Solde faible (~{estimatedRidesCount} courses)</span>
               ) : (
-                <span className="text-emerald-400/90 font-medium">Solde actif (~{estimatedRidesCount} courses) • Com. 15%</span>
+                <span className="text-blue-400/90 font-medium">Solde actif (~{estimatedRidesCount} courses) • Com. 15%</span>
               )}
             </p>
           </div>
@@ -607,7 +607,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
           <button
             onClick={() => setShowRechargeModal(true)}
-            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all shrink-0 active:scale-95"
+            className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all shrink-0 active:scale-95"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Recharger</span>
@@ -617,9 +617,9 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
       {/* TOAST D'ACTION PERSISTANCE HORS-LIGNE */}
       {offlineActionToast && (
-        <div className="mx-3 mt-2 p-2.5 bg-slate-900/95 border border-emerald-500/50 rounded-xl text-xs text-slate-100 flex items-center justify-between shadow-xl animate-fadeIn z-20">
+        <div className="mx-3 mt-2 p-2.5 bg-[#111827]/95 border border-blue-500/50 rounded-xl text-xs text-slate-100 flex items-center justify-between shadow-xl animate-fadeIn z-20">
           <div className="flex items-center space-x-2">
-            <HardDrive className="w-4 h-4 text-emerald-400 shrink-0" />
+            <HardDrive className="w-4 h-4 text-blue-400 shrink-0" />
             <span className="font-semibold text-[11px]">{offlineActionToast}</span>
           </div>
           <button onClick={() => setOfflineActionToast(null)} className="text-slate-400 hover:text-white p-0.5">
@@ -634,7 +634,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           onClick={() => setActiveTab('map')}
           className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'map'
-              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              ? (isDark ? 'border-blue-500 text-blue-400 bg-[#1F2937]/50' : 'border-blue-600 text-blue-600 bg-blue-50/50')
               : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
@@ -646,7 +646,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           onClick={() => setActiveTab('wallet')}
           className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'wallet'
-              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              ? (isDark ? 'border-blue-500 text-blue-400 bg-[#1F2937]/50' : 'border-blue-600 text-blue-600 bg-blue-50/50')
               : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
@@ -659,7 +659,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           onClick={() => setActiveTab('history')}
           className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'history'
-              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              ? (isDark ? 'border-blue-500 text-blue-400 bg-[#1F2937]/50' : 'border-blue-600 text-blue-600 bg-blue-50/50')
               : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
@@ -671,7 +671,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           onClick={() => setActiveTab('kyc')}
           className={`py-2.5 flex items-center justify-center space-x-1 border-b-2 transition-colors ${
             activeTab === 'kyc'
-              ? (isDark ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-emerald-600 text-emerald-600 bg-emerald-50/50')
+              ? (isDark ? 'border-blue-500 text-blue-400 bg-[#1F2937]/50' : 'border-blue-600 text-blue-600 bg-blue-50/50')
               : (isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')
           }`}
         >
@@ -705,34 +705,34 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`flex items-center justify-between px-3 py-1.5 border rounded-xl text-xs mb-2 shadow-sm transition-colors ${
                     !syncStats.isOnline
                       ? 'bg-amber-950/70 border-amber-500/50 text-amber-200'
-                      : 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200'
+                      : 'bg-blue-950/60 border-blue-500/40 text-blue-200'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="relative flex h-2 w-2">
                       <span
                         className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                          !syncStats.isOnline ? 'bg-amber-400' : 'bg-emerald-400'
+                          !syncStats.isOnline ? 'bg-amber-400' : 'bg-blue-400'
                         }`}
                       ></span>
                       <span
                         className={`relative inline-flex rounded-full h-2 w-2 ${
-                          !syncStats.isOnline ? 'bg-amber-500' : 'bg-emerald-500'
+                          !syncStats.isOnline ? 'bg-amber-500' : 'bg-blue-500'
                         }`}
                       ></span>
                     </span>
                     <span
                       className={`font-semibold flex items-center gap-1 ${
-                        !syncStats.isOnline ? 'text-amber-300' : 'text-emerald-300'
+                        !syncStats.isOnline ? 'text-amber-300' : 'text-blue-300'
                       }`}
                     >
-                      <Radio className={`w-3 h-3 ${!syncStats.isOnline ? 'text-amber-400' : 'text-emerald-400'}`} />
+                      <Radio className={`w-3 h-3 ${!syncStats.isOnline ? 'text-amber-400' : 'text-blue-400'}`} />
                       {!syncStats.isOnline ? 'GPS LocalStorage (Hors-ligne)' : 'GPS 5s Firestore (Live)'}
                     </span>
                   </div>
                   <div
                     className={`flex items-center space-x-2 font-mono text-[11px] ${
-                      !syncStats.isOnline ? 'text-amber-400/90' : 'text-emerald-400/90'
+                      !syncStats.isOnline ? 'text-amber-400/90' : 'text-blue-400/90'
                     }`}
                   >
                     <span>{lastGpsPing ? `Ping : ${lastGpsPing}` : 'Initialisation...'}</span>
@@ -741,7 +741,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                         {syncStats.pendingLocationsCount} en attente
                       </span>
                     ) : gpsPingCount > 0 ? (
-                      <span className="bg-emerald-800/80 px-1.5 py-0.2 rounded text-[10px]">
+                      <span className="bg-blue-800/80 px-1.5 py-0.2 rounded text-[10px]">
                         #{gpsPingCount}
                       </span>
                     ) : null}
@@ -751,12 +751,12 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
               {/* Barre ETA Dynamique Course en cours */}
               {activeRide && currentEta && activeRide.status !== 'searching_driver' && (
-                <div className="flex items-center justify-between px-3 py-2 bg-slate-950 border border-emerald-500/30 rounded-xl text-xs mb-3 text-slate-200">
+                <div className="flex items-center justify-between px-3 py-2 bg-[#090b14] border border-blue-500/30 rounded-xl text-xs mb-3 text-slate-200">
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-emerald-400" />
+                    <Clock className="w-4 h-4 text-blue-400" />
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-semibold">Temps Estimé (ETA)</p>
-                      <p className="font-bold text-emerald-300 text-sm">{currentEta.etaText}</p>
+                      <p className="font-bold text-blue-300 text-sm">{currentEta.etaText}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -789,7 +789,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               {/* ÉTAT HORS LIGNE */}
               {!isOnline && !activeRide && !isBalanceCritical && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-4">
-                  <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center text-slate-500 border border-slate-700">
+                  <div className="w-14 h-14 bg-[#1F2937] rounded-full flex items-center justify-center text-slate-500 border border-slate-700">
                     <Power className="w-7 h-7" />
                   </div>
                   <div>
@@ -800,7 +800,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   </div>
                   <button
                     onClick={handleToggleOnlineAttempt}
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/30"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-900/30"
                   >
                     Passer En Ligne
                   </button>
@@ -811,8 +811,8 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               {isOnline && !activeRide && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-4">
                   <div className="relative w-14 h-14 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-ping"></div>
-                    <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/40 rounded-full flex items-center justify-center text-emerald-400">
+                    <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
+                    <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/40 rounded-full flex items-center justify-center text-blue-400">
                       <Navigation className="w-6 h-6 animate-pulse" />
                     </div>
                   </div>
@@ -825,7 +825,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   <div className="grid grid-cols-2 gap-2 w-full pt-2">
                     <div className={`p-2.5 rounded-xl text-left ${themeNestedCard}`}>
                       <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Chiffre d'affaires perçu</p>
-                      <p className="text-sm font-black text-emerald-400">{SenegalPaymentService.formatFCFA(driver.dailyEarnings)}</p>
+                      <p className="text-sm font-black text-blue-400">{SenegalPaymentService.formatFCFA(driver.dailyEarnings)}</p>
                     </div>
                     <div className={`p-2.5 rounded-xl text-left ${themeNestedCard}`}>
                       <p className={`text-[10px] uppercase font-semibold ${themeTextMuted}`}>Courses aujourd'hui</p>
@@ -837,21 +837,21 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
               {/* ÉTAT DEMANDE DE COURSE ENTRANTE (DISPATCH AVEC MODÈLE ÉCONOMIQUE YANGO) */}
               {activeRide && activeRide.status === 'searching_driver' && (
-                <div className="bg-slate-950 border-2 border-emerald-500/60 rounded-2xl p-4 shadow-2xl space-y-3 animate-bounce-subtle">
+                <div className="bg-[#090b14] border-2 border-blue-500/60 rounded-2xl p-4 shadow-2xl space-y-3 animate-bounce-subtle">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-                      <span className="text-xs font-black uppercase text-emerald-400 tracking-wider">
+                      <span className="w-3 h-3 rounded-full bg-blue-400 animate-ping"></span>
+                      <span className="text-xs font-black uppercase text-blue-400 tracking-wider">
                         Nouvelle Course Entrante
                       </span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-500 flex items-center justify-center font-mono font-bold text-emerald-400 text-xs shadow">
+                    <div className="w-8 h-8 rounded-full bg-blue-950 border border-blue-500 flex items-center justify-center font-mono font-bold text-blue-400 text-xs shadow">
                       {countdown}s
                     </div>
                   </div>
 
                   {/* Décomposition du Modèle Économique : Paiement Direct & Déduction Commission */}
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
+                  <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase font-bold">Montant perçu directement du client</p>
@@ -859,7 +859,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                           {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}
                         </p>
                       </div>
-                      <span className="px-2 py-1 bg-slate-800 text-emerald-400 rounded-lg text-[10px] font-bold uppercase">
+                      <span className="px-2 py-1 bg-[#1F2937] text-blue-400 rounded-lg text-[10px] font-bold uppercase">
                         Paiement {activeRide.paymentMethod}
                       </span>
                     </div>
@@ -871,9 +871,9 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                       </span>
                     </div>
 
-                    <div className="bg-emerald-950/40 p-2 rounded-lg border border-emerald-500/30 flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-300">Votre gain net réel :</span>
-                      <span className="text-sm font-black text-emerald-400">
+                    <div className="bg-blue-950/40 p-2 rounded-lg border border-blue-500/30 flex items-center justify-between">
+                      <span className="text-xs font-bold text-blue-300">Votre gain net réel :</span>
+                      <span className="text-sm font-black text-blue-400">
                         {SenegalPaymentService.formatFCFA(activeRide.pricing.driverNetEarnings)}
                       </span>
                     </div>
@@ -882,7 +882,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   {/* Détails du Trajet */}
                   <div className="space-y-1.5 text-xs">
                     <div className="flex items-center space-x-2 text-slate-300">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
                       <span className="truncate">
                         Prise en charge : <strong>{activeRide.pickup.quarter} ({activeRide.pickup.name})</strong>
                       </span>
@@ -899,13 +899,13 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   <div className="flex space-x-2 pt-1">
                     <button
                       onClick={() => onDeclineRide(activeRide.id)}
-                      className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-rose-400 text-xs font-bold rounded-xl border border-rose-500/20"
+                      className="flex-1 py-3 bg-[#1F2937] hover:bg-slate-700 text-rose-400 text-xs font-bold rounded-xl border border-rose-500/20"
                     >
                       Refuser
                     </button>
                     <button
                       onClick={() => onAcceptRide(activeRide.id)}
-                      className="flex-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-1.5"
+                      className="flex-2 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-900/30 flex items-center justify-center gap-1.5"
                     >
                       <Check className="w-4 h-4" /> ACCEPTER LA COURSE
                     </button>
@@ -916,10 +916,10 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               {/* ÉTAT COURSE EN COURS (ÉTAPES DE GUIDAGE GPS, VOCAL & APPEL DIRECT) */}
               {activeRide && (activeRide.status === 'driver_assigned' || activeRide.status === 'driver_arrived' || activeRide.status === 'in_progress') && (
                 <div className="space-y-3">
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                  <div className="bg-[#090b14] p-3 rounded-xl border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-emerald-400">
+                        <p className="text-[10px] uppercase font-bold text-blue-400">
                           {activeRide.status === 'driver_assigned' && '1. En route vers le client'}
                           {activeRide.status === 'driver_arrived' && '2. Arrivé au point de prise en charge'}
                           {activeRide.status === 'in_progress' && '3. Course en cours vers la destination'}
@@ -930,7 +930,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                         </h4>
                       </div>
 
-                      <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/30 rounded text-xs font-mono font-bold">
+                      <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/30 rounded text-xs font-mono font-bold">
                         #{activeRide.id}
                       </span>
                     </div>
@@ -951,7 +951,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   <div className="grid grid-cols-2 gap-2">
                     <a
                       href={`tel:${activeRide.passenger.phone}`}
-                      className="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95 transition-all"
+                      className="py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-950/40 active:scale-95 transition-all"
                     >
                       <Phone className="w-4 h-4 fill-current animate-bounce" />
                       <span>Appel Direct</span>
@@ -961,7 +961,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                       href={`https://wa.me/${activeRide.passenger.phone.replace(/[^0-9]/g, '') || '221774128890'}?text=${encodeURIComponent(`Bonjour ${activeRide.passenger.fullName}, je suis votre chauffeur Yoon VTC pour la course #${activeRide.id}.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 active:scale-95 transition-all"
+                      className="py-2.5 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-950/40 active:scale-95 transition-all"
                     >
                       <Smartphone className="w-4 h-4" />
                       <span>WhatsApp</span>
@@ -982,7 +982,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   {activeRide.status === 'driver_arrived' && (
                     <button
                       onClick={() => handleStartRideOfflineAware(activeRide.id)}
-                      className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2"
+                      className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2"
                     >
                       <ArrowRight className="w-4 h-4" />
                       <span>LE PASSAGER EST À BORD - DÉMARRER</span>
@@ -991,16 +991,16 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
                   {activeRide.status === 'in_progress' && (
                     <div className="space-y-2">
-                      <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+                      <div className="bg-[#090b14] p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
                         <span className="text-slate-400">À encaisser auprès du passager :</span>
-                        <span className="font-bold text-emerald-400 font-mono">
+                        <span className="font-bold text-blue-400 font-mono">
                           {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)} ({activeRide.paymentMethod})
                         </span>
                       </div>
 
                       <button
                         onClick={() => handleCompleteRideOfflineAware(activeRide.id)}
-                        className="w-full py-3.5 bg-emerald-700 hover:bg-emerald-600 text-white font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/30"
+                        className="w-full py-3.5 bg-blue-700 hover:bg-blue-600 text-white font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/30"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         <span>ARRIVÉ À DESTINATION - TERMINER LA COURSE</span>
@@ -1018,12 +1018,12 @@ export const DriverApp: React.FC<DriverAppProps> = ({
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             
             {/* Carte Solde de Crédit Principal */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950/40 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span className="flex items-center gap-1">
-                  <Wallet className="w-4 h-4 text-emerald-400" /> Solde de Crédit (Modèle Yango)
+                  <Wallet className="w-4 h-4 text-blue-400" /> Solde de Crédit (Modèle Yango)
                 </span>
-                <span className="font-mono text-emerald-400">Commission: 15%</span>
+                <span className="font-mono text-blue-400">Commission: 15%</span>
               </div>
 
               <div className="flex items-baseline justify-between">
@@ -1045,7 +1045,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                       ? 'bg-rose-950 text-rose-400 border border-rose-500/40'
                       : isBalanceLow
                       ? 'bg-amber-950 text-amber-400 border border-amber-500/40'
-                      : 'bg-emerald-950 text-emerald-400 border border-emerald-500/40'
+                      : 'bg-blue-950 text-blue-400 border border-blue-500/40'
                   }`}
                 >
                   {isBalanceCritical ? 'Épuisé (< 1 000 F)' : isBalanceLow ? 'Faible' : 'Optimal'}
@@ -1056,7 +1056,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               <div className="flex space-x-2 pt-2">
                 <button
                   onClick={() => setShowRechargeModal(true)}
-                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-900/40 transition-transform active:scale-[0.99]"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-blue-900/40 transition-transform active:scale-[0.99]"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>Recharger par Wave / Orange Money</span>
@@ -1065,7 +1065,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 {onRequestPayout && (
                   <button
                     onClick={() => setShowPayoutModal(true)}
-                    className="py-3 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-1"
+                    className="py-3 px-3 bg-[#1F2937] hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-1"
                     title="Retirer des fonds"
                   >
                     <DollarSign className="w-4 h-4" />
@@ -1075,15 +1075,15 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
 
             {/* Guide Explicatif du Modèle Économique (Yango) */}
-            <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl space-y-2.5 text-xs">
-              <div className="flex items-center space-x-2 text-emerald-400 font-bold">
+            <div className="bg-[#111827]/90 border border-slate-800 p-3.5 rounded-xl space-y-2.5 text-xs">
+              <div className="flex items-center space-x-2 text-blue-400 font-bold">
                 <Info className="w-4 h-4" />
                 <span>Fonctionnement du Système de Crédit Yango</span>
               </div>
 
               <div className="space-y-2 text-slate-300 text-[11px] leading-relaxed">
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-4 h-4 rounded-full bg-blue-950 border border-blue-500/40 text-blue-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     1
                   </span>
                   <p>
@@ -1092,7 +1092,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-4 h-4 rounded-full bg-blue-950 border border-blue-500/40 text-blue-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     2
                   </span>
                   <p>
@@ -1101,7 +1101,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <span className="w-4 h-4 rounded-full bg-blue-950 border border-blue-500/40 text-blue-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     3
                   </span>
                   <p>
@@ -1113,18 +1113,18 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
             {/* Statistiques Financières */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800">
                 <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
                   <span>Encaissé Aujourd'hui</span>
                 </div>
-                <p className="text-base font-bold text-emerald-400">
+                <p className="text-base font-bold text-blue-400">
                   {SenegalPaymentService.formatFCFA(driver.dailyEarnings)}
                 </p>
                 <p className="text-[10px] text-slate-500">6 courses effectuées</p>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800">
                 <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
                   <Clock className="w-3.5 h-3.5 text-sky-400" />
                   <span>Total Semaine</span>
@@ -1137,7 +1137,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
 
             {/* Historique des Transactions (Commissions déduites & Recharges) */}
-            <div className="bg-slate-900 rounded-xl border border-slate-800 p-3 space-y-2">
+            <div className="bg-[#111827] rounded-xl border border-slate-800 p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                   Historique des Transactions (Firestore)
@@ -1152,13 +1152,13 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     return (
                       <div
                         key={txn.id}
-                        className="flex justify-between items-center p-2.5 bg-slate-950 rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors"
+                        className="flex justify-between items-center p-2.5 bg-[#090b14] rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors"
                       >
                         <div className="flex items-center space-x-2.5">
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center ${
                               isCredit
-                                ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                                ? 'bg-blue-950 text-blue-400 border border-blue-500/30'
                                 : 'bg-rose-950 text-rose-400 border border-rose-500/30'
                             }`}
                           >
@@ -1182,7 +1182,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                         <div className="text-right">
                           <span
                             className={`font-mono font-bold text-xs ${
-                              isCredit ? 'text-emerald-400' : 'text-rose-400'
+                              isCredit ? 'text-blue-400' : 'text-rose-400'
                             }`}
                           >
                             {isCredit ? `+${txn.amount} FCFA` : `${txn.amount} FCFA`}
@@ -1207,14 +1207,14 @@ export const DriverApp: React.FC<DriverAppProps> = ({
         {/* ONGLET 3: PROFIL & VÉRIFICATION DOCUMENTS KYC */}
         {activeTab === 'kyc' && (
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-[#111827] p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400 font-semibold">Statut KYC Chauffeur</p>
                 <div className="flex items-center space-x-1.5 mt-1">
                   {driver.kyc.status === 'approved' && (
                     <>
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                      <span className="text-xs font-bold text-emerald-400">Compte Validé & Actif</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                      <span className="text-xs font-bold text-blue-400">Compte Validé & Actif</span>
                     </>
                   )}
                   {driver.kyc.status === 'pending' && (
@@ -1225,7 +1225,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   )}
                 </div>
               </div>
-              <span className="text-[11px] font-mono bg-slate-950 px-2 py-1 rounded text-slate-300 border border-slate-800">
+              <span className="text-[11px] font-mono bg-[#090b14] px-2 py-1 rounded text-slate-300 border border-slate-800">
                 SN-{driver.id}
               </span>
             </div>
@@ -1236,52 +1236,52 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 Pièces Justificatives (Sénégal)
               </h4>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-200">Carte Nationale d'Identité (CNI)</p>
                   <p className="text-[10px] text-slate-400">N° {driver.kyc.cniNumber}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/40 rounded text-[10px] font-bold">
                   Approuvé
                 </span>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-200">Permis de Conduire Sénégalais</p>
                   <p className="text-[10px] text-slate-400">Réf: {driver.kyc.licenseNumber}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/40 rounded text-[10px] font-bold">
                   Approuvé
                 </span>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-200">Carte Grise du Véhicule</p>
                   <p className="text-[10px] text-slate-400">{driver.vehicle.brand} {driver.vehicle.model} ({driver.vehicle.plateNumber})</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/40 rounded text-[10px] font-bold">
                   Approuvé
                 </span>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-200">Assurance Véhicule CEMAC</p>
                   <p className="text-[10px] text-slate-400">Expire le {driver.kyc.assuranceExpiry}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/40 rounded text-[10px] font-bold">
                   Valide
                 </span>
               </div>
 
-              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="bg-[#111827] p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-200">Visite Technique & Conformité</p>
                   <p className="text-[10px] text-slate-400">Contrôle technique agréé Dakar</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-500/40 rounded text-[10px] font-bold">
                   Conforme
                 </span>
               </div>
@@ -1297,7 +1297,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 <h4 className="text-sm font-black text-white">Historique des Courses</h4>
                 <p className="text-xs text-slate-400">Reçus numériques, gains nets et commissions Yoon</p>
               </div>
-              <span className="px-2 py-1 bg-emerald-950 border border-emerald-500/30 text-emerald-300 font-bold text-xs rounded-xl">
+              <span className="px-2 py-1 bg-blue-950 border border-blue-500/30 text-blue-300 font-bold text-xs rounded-xl">
                 {pastDriverRides.length} courses
               </span>
             </div>
@@ -1306,12 +1306,12 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               {pastDriverRides.map((ride) => (
                 <div
                   key={ride.id}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-3.5 space-y-2.5 transition-all shadow-md"
+                  className="bg-[#111827] border border-slate-800 hover:border-slate-700 rounded-2xl p-3.5 space-y-2.5 transition-all shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="font-mono text-xs font-black text-white">#{ride.id}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-500/30">
                         Gain Net : {SenegalPaymentService.formatFCFA(ride.pricing.driverNetEarnings)}
                       </span>
                     </div>
@@ -1324,7 +1324,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   {/* Trajet */}
                   <div className="text-xs space-y-1 text-slate-300">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                       <span className="truncate">{ride.pickup.quarter} ({ride.pickup.name})</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1334,7 +1334,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   </div>
 
                   {/* Décomposition Financière */}
-                  <div className="bg-slate-950 p-2 rounded-xl text-[11px] flex justify-between items-center text-slate-300 font-mono">
+                  <div className="bg-[#090b14] p-2 rounded-xl text-[11px] flex justify-between items-center text-slate-300 font-mono">
                     <span>Client a payé: {SenegalPaymentService.formatFCFA(ride.pricing.totalFare)}</span>
                     <span className="text-rose-400">Commission (15%): -{SenegalPaymentService.formatFCFA(ride.pricing.platformCommission)}</span>
                   </div>
@@ -1349,7 +1349,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                         setSelectedReceiptRide(ride);
                         setShowReceiptModal(true);
                       }}
-                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1 bg-[#1F2937] hover:bg-slate-700 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
                     >
                       <Receipt className="w-3.5 h-3.5" />
                       <span>Reçu Numérique</span>
@@ -1383,11 +1383,11 @@ export const DriverApp: React.FC<DriverAppProps> = ({
         />
       )}
       {showRechargeModal && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className="absolute inset-0 bg-[#090b14]/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
+          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
                   <PlusCircle className="w-5 h-5" />
                 </div>
                 <div>
@@ -1427,7 +1427,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
                     rechargeMethod === 'wave'
                       ? 'bg-sky-950/70 border-sky-400 text-sky-300 shadow-md ring-1 ring-sky-400/50'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                      : 'bg-[#090b14] border-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Smartphone className="w-4 h-4 text-sky-400" />
@@ -1440,7 +1440,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
                     rechargeMethod === 'orange_money'
                       ? 'bg-orange-950/70 border-orange-400 text-orange-300 shadow-md ring-1 ring-orange-400/50'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                      : 'bg-[#090b14] border-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <CreditCard className="w-4 h-4 text-orange-400" />
@@ -1460,8 +1460,8 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     onClick={() => setRechargeAmount(amt)}
                     className={`py-2 rounded-lg text-xs font-bold font-mono transition-all ${
                       rechargeAmount === amt
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-[#090b14] border border-slate-800 text-slate-300 hover:bg-[#1F2937]'
                     }`}
                   >
                     {amt >= 1000 ? `${amt / 1000}k F` : `${amt} F`}
@@ -1474,7 +1474,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-slate-400">
                 <label className="font-semibold">Montant exact (FCFA)</label>
-                <span className="text-emerald-400 font-mono font-bold">
+                <span className="text-blue-400 font-mono font-bold">
                   ~{Math.floor(rechargeAmount / 350)} courses
                 </span>
               </div>
@@ -1484,7 +1484,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 onChange={(e) => setRechargeAmount(Math.max(500, Number(e.target.value)))}
                 min={500}
                 step={500}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-base font-black text-emerald-400 font-mono focus:border-emerald-500 outline-none"
+                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-base font-black text-blue-400 font-mono focus:border-blue-500 outline-none"
               />
             </div>
 
@@ -1495,15 +1495,15 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 type="text"
                 value={rechargePhone}
                 onChange={(e) => setRechargePhone(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 font-mono focus:border-emerald-500 outline-none"
+                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-xs text-slate-100 font-mono focus:border-blue-500 outline-none"
                 placeholder="+221 77 123 45 67"
               />
             </div>
 
             {/* Message de confirmation de recharge */}
             {rechargeSuccessMsg && (
-              <div className="p-3 bg-emerald-950/90 border border-emerald-500/60 rounded-xl text-xs text-emerald-200 flex items-center space-x-2 animate-fadeIn">
-                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="p-3 bg-blue-950/90 border border-blue-500/60 rounded-xl text-xs text-blue-200 flex items-center space-x-2 animate-fadeIn">
+                <CheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>{rechargeSuccessMsg}</span>
               </div>
             )}
@@ -1513,7 +1513,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
               <button
                 type="button"
                 onClick={() => setShowRechargeModal(false)}
-                className="flex-1 py-2.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+                className="flex-1 py-2.5 bg-[#1F2937] text-slate-300 text-xs font-semibold rounded-xl"
               >
                 Annuler
               </button>
@@ -1522,7 +1522,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 type="button"
                 onClick={handleConfirmRecharge}
                 disabled={isRecharging || rechargeAmount < 500}
-                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-900/40 flex items-center justify-center gap-1.5"
               >
                 {isRecharging ? (
                   <>
@@ -1543,8 +1543,8 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
       {/* MODAL RETRAIT GAINS VERS WAVE / ORANGE MONEY (OPTIONNEL) */}
       {showPayoutModal && onRequestPayout && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className="absolute inset-0 bg-[#090b14]/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
+          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-sm text-slate-100">Retrait de Gains Chauffeur</h3>
               <button
@@ -1564,7 +1564,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 ${
                     payoutMethod === 'wave'
                       ? 'bg-sky-950/50 border-sky-400 text-sky-400'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      : 'bg-[#090b14] border-slate-800 text-slate-400'
                   }`}
                 >
                   <Smartphone className="w-4 h-4 text-sky-400" />
@@ -1577,7 +1577,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 ${
                     payoutMethod === 'orange_money'
                       ? 'bg-orange-950/50 border-orange-400 text-orange-400'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      : 'bg-[#090b14] border-slate-800 text-slate-400'
                   }`}
                 >
                   <CreditCard className="w-4 h-4 text-orange-400" />
@@ -1592,7 +1592,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 type="text"
                 value={payoutPhone}
                 onChange={(e) => setPayoutPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 font-mono focus:border-emerald-500 outline-none"
+                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-xs text-slate-100 font-mono focus:border-blue-500 outline-none"
               />
             </div>
 
@@ -1608,21 +1608,21 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 min={1000}
                 max={driver.walletBalance}
                 step={500}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm font-bold text-emerald-400 font-mono focus:border-emerald-500 outline-none"
+                className="w-full px-3 py-2 bg-[#090b14] border border-slate-800 rounded-xl text-sm font-bold text-blue-400 font-mono focus:border-blue-500 outline-none"
               />
             </div>
 
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => setShowPayoutModal(false)}
-                className="flex-1 py-2.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+                className="flex-1 py-2.5 bg-[#1F2937] text-slate-300 text-xs font-semibold rounded-xl"
               >
                 Annuler
               </button>
               <button
                 onClick={handleWithdraw}
                 disabled={payoutAmount <= 0 || payoutAmount > driver.walletBalance}
-                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/30"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-900/30"
               >
                 Confirmer le virement
               </button>
@@ -1633,11 +1633,11 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
       {/* MODAL DIAGNOSTIC & SYNCHRONISATION HORS-LIGNE (LOCALSTORAGE) */}
       {showOfflineModal && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="absolute inset-0 bg-[#090b14]/95 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
+          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
-                <div className="p-2 bg-emerald-950/80 border border-emerald-500/40 rounded-xl text-emerald-400">
+                <div className="p-2 bg-blue-950/80 border border-blue-500/40 rounded-xl text-blue-400">
                   <Database className="w-4 h-4" />
                 </div>
                 <div>
@@ -1654,14 +1654,14 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             </div>
 
             {/* État du Réseau */}
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+            <div className="bg-[#090b14] p-3 rounded-xl border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-400 font-semibold">État de connexion :</span>
                 <span
                   className={`px-2 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${
                     !syncStats.isOnline
                       ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                      : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-blue-950 text-blue-300 border border-blue-500/40'
                   }`}
                 >
                   {!syncStats.isOnline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
@@ -1677,7 +1677,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
               <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-900">
                 <span className="text-slate-400">Dernière synchro réussie :</span>
-                <span className="text-emerald-400 font-mono font-bold">
+                <span className="text-blue-400 font-mono font-bold">
                   {syncStats.lastSyncTime ? syncStats.lastSyncTime : 'Aucune'}
                 </span>
               </div>
@@ -1687,11 +1687,11 @@ export const DriverApp: React.FC<DriverAppProps> = ({
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
                 <span>File d'attente locale</span>
-                <span className="font-mono text-emerald-400">{syncStats.pendingCount} en attente</span>
+                <span className="font-mono text-blue-400">{syncStats.pendingCount} en attente</span>
               </h4>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-[#090b14] p-2.5 rounded-xl border border-slate-800">
                   <p className="text-[10px] text-slate-400 font-semibold uppercase">Positions GPS</p>
                   <p className="text-base font-black text-amber-400 font-mono">
                     {syncStats.pendingLocationsCount}
@@ -1699,7 +1699,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   <p className="text-[9px] text-slate-500">Coordonnées horodatées</p>
                 </div>
 
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-[#090b14] p-2.5 rounded-xl border border-slate-800">
                   <p className="text-[10px] text-slate-400 font-semibold uppercase">Statuts de Course</p>
                   <p className="text-base font-black text-sky-400 font-mono">
                     {syncStats.pendingRideStatusCount}
@@ -1710,7 +1710,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
 
               {/* Aperçu des éléments stockés */}
               {driverOfflineSyncService.getPendingQueue().length > 0 ? (
-                <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 max-h-36 overflow-y-auto space-y-1 text-[11px] font-mono">
+                <div className="bg-[#090b14] p-2 rounded-xl border border-slate-800 max-h-36 overflow-y-auto space-y-1 text-[11px] font-mono">
                   {driverOfflineSyncService
                     .getPendingQueue()
                     .slice(-5)
@@ -1718,10 +1718,10 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     .map((item) => (
                       <div
                         key={item.id}
-                        className="p-1.5 bg-slate-900/90 rounded border border-slate-800/80 flex items-center justify-between text-slate-300"
+                        className="p-1.5 bg-[#111827]/90 rounded border border-slate-800/80 flex items-center justify-between text-slate-300"
                       >
                         <div className="truncate pr-2">
-                          <span className="text-emerald-400 font-bold">[{item.type}]</span>{' '}
+                          <span className="text-blue-400 font-bold">[{item.type}]</span>{' '}
                           {item.type === 'gps_location' &&
                             `Lat: ${item.payload.lat?.toFixed(4)}, Lng: ${item.payload.lng?.toFixed(4)}`}
                           {item.type === 'ride_status' &&
@@ -1734,16 +1734,16 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     ))}
                 </div>
               ) : (
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center text-xs text-slate-500">
+                <div className="bg-[#090b14] p-3 rounded-xl border border-slate-800 text-center text-xs text-slate-500">
                   ✨ Aucun élément en attente. Tout est synchronisé avec Firestore.
                 </div>
               )}
             </div>
 
             {/* Cache Local de la Course */}
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
+            <div className="bg-[#090b14]/60 p-2.5 rounded-xl border border-slate-800 text-xs flex items-center justify-between">
               <span className="text-slate-400">Empreinte mémoire localStorage :</span>
-              <span className="font-mono text-emerald-400 font-bold">
+              <span className="font-mono text-blue-400 font-bold">
                 ~{(syncStats.storageUsageBytes / 1024).toFixed(2)} KB
               </span>
             </div>
@@ -1754,7 +1754,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                 type="button"
                 onClick={handleForceSync}
                 disabled={isManualSyncing || !syncStats.isOnline}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/40"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/40"
               >
                 {isManualSyncing ? (
                   <>
@@ -1776,12 +1776,12 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                   className={`py-2 px-2 text-[11px] font-bold rounded-xl border flex items-center justify-center space-x-1.5 transition-colors ${
                     syncStats.isSimulatedOffline
                       ? 'bg-amber-950/80 border-amber-500/50 text-amber-300'
-                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                      : 'bg-[#1F2937] border-slate-700 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
                   {syncStats.isSimulatedOffline ? (
                     <>
-                      <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                      <Wifi className="w-3.5 h-3.5 text-blue-400" />
                       <span>Rétablir le Réseau</span>
                     </>
                   ) : (
@@ -1800,7 +1800,7 @@ export const DriverApp: React.FC<DriverAppProps> = ({
                     setTimeout(() => setOfflineActionToast(null), 2500);
                   }}
                   disabled={syncStats.pendingCount === 0}
-                  className="py-2 px-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-rose-400 text-[11px] font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-1.5"
+                  className="py-2 px-2 bg-[#1F2937] hover:bg-slate-700 disabled:opacity-40 text-rose-400 text-[11px] font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-1.5"
                 >
                   <X className="w-3.5 h-3.5" />
                   <span>Vider la file</span>

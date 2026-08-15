@@ -202,7 +202,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 bg-emerald-950 border border-emerald-500/40 rounded-lg text-emerald-400">
+          <div className="p-1.5 bg-blue-950 border border-blue-500/40 rounded-lg text-blue-400">
             <Mic className="w-4 h-4" />
           </div>
           <div>
@@ -259,7 +259,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
                 <button
                   type="button"
                   onClick={startRecording}
-                  className="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-900/40 transition-transform active:scale-95 group"
+                  className="w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/40 transition-transform active:scale-95 group"
                 >
                   <Mic className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 </button>
@@ -286,7 +286,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
                   className="w-full text-left p-2 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl text-xs text-slate-300 transition-colors flex items-center justify-between"
                 >
                   <span className="truncate pr-2">"{p.text}"</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold shrink-0">{p.duration}s</span>
+                  <span className="text-[10px] text-blue-400 font-mono font-bold shrink-0">{p.duration}s</span>
                 </button>
               ))}
             </div>
@@ -295,19 +295,19 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
       ) : (
         /* Note vocale prête avec lecteur */
         <div className="space-y-3">
-          <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/40 space-y-2">
+          <div className="bg-slate-950 p-3 rounded-xl border border-blue-500/40 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={togglePlayback}
-                  className="w-9 h-9 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95"
+                  className="w-9 h-9 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95"
                 >
                   {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
                 </button>
                 <div>
                   <p className="text-xs font-bold text-slate-100 flex items-center gap-1">
-                    <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Volume2 className="w-3.5 h-3.5 text-blue-400" />
                     <span>Note vocale prête</span>
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono">
@@ -340,7 +340,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
                   <span
                     key={i}
                     className={`flex-1 rounded-full transition-all duration-200 ${
-                      isPassed ? 'bg-emerald-400' : 'bg-slate-700'
+                      isPassed ? 'bg-blue-400' : 'bg-slate-700'
                     }`}
                     style={{ height: `${h}%` }}
                   />
@@ -372,7 +372,7 @@ export const VoiceNoteRecorder: React.FC<VoiceNoteRecorderProps> = ({
             <button
               type="button"
               onClick={handleConfirmSend}
-              className="flex-2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-1.5"
+              className="flex-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-900/40 flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Joindre la note vocale à la course</span>
@@ -418,13 +418,13 @@ export const VoiceNotePlayerCard: React.FC<{
   };
 
   return (
-    <div className="p-3 bg-gradient-to-r from-emerald-950/90 via-slate-900 to-slate-900 border border-emerald-500/50 rounded-2xl shadow-lg space-y-2">
+    <div className="p-3 bg-gradient-to-r from-blue-950/90 via-slate-900 to-slate-900 border border-blue-500/50 rounded-2xl shadow-lg space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <button
             type="button"
             onClick={togglePlay}
-            className="w-10 h-10 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 shrink-0"
+            className="w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 shrink-0"
           >
             {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
           </button>
@@ -433,7 +433,7 @@ export const VoiceNotePlayerCard: React.FC<{
               <p className="text-xs font-bold text-slate-100">
                 Note Vocale {role === 'driver' ? `de ${senderName}` : 'envoyée au chauffeur'}
               </p>
-              <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[9px] font-bold font-mono">
+              <span className="px-1.5 py-0.2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-[9px] font-bold font-mono">
                 AUDIO {duration}s
               </span>
             </div>
@@ -453,7 +453,7 @@ export const VoiceNotePlayerCard: React.FC<{
               <span
                 key={i}
                 className={`flex-1 rounded-full transition-all duration-150 ${
-                  isPassed ? 'bg-emerald-400' : 'bg-slate-700'
+                  isPassed ? 'bg-blue-400' : 'bg-slate-700'
                 }`}
                 style={{ height: `${h}%` }}
               />
@@ -462,7 +462,7 @@ export const VoiceNotePlayerCard: React.FC<{
         </div>
 
         {landmarkHint && (
-          <p className="text-[11px] text-emerald-200/90 font-medium bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
+          <p className="text-[11px] text-blue-200/90 font-medium bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
             📍 Repère : <strong>{landmarkHint}</strong>
           </p>
         )}

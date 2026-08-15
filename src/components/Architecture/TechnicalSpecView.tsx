@@ -31,7 +31,7 @@ export const TechnicalSpecView: React.FC = () => {
       <div className="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
         <div>
           <h2 className="text-base font-extrabold text-slate-100 flex items-center gap-2">
-            <Layers className="w-5 h-5 text-emerald-400" />
+            <Layers className="w-5 h-5 text-blue-400" />
             Architecture Technique & Spécifications (Sénégal VTC)
           </h2>
           <p className="text-xs text-slate-400">
@@ -44,7 +44,7 @@ export const TechnicalSpecView: React.FC = () => {
           <button
             onClick={() => setActiveSection('architecture')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeSection === 'architecture' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeSection === 'architecture' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             1. Architecture Globale
@@ -52,7 +52,7 @@ export const TechnicalSpecView: React.FC = () => {
           <button
             onClick={() => setActiveSection('database')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeSection === 'database' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeSection === 'database' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             2. Base de Données (PostGIS/Firestore)
@@ -60,7 +60,7 @@ export const TechnicalSpecView: React.FC = () => {
           <button
             onClick={() => setActiveSection('mobile_structure')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeSection === 'mobile_structure' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeSection === 'mobile_structure' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             3. Structure Flutter / React Native
@@ -68,7 +68,7 @@ export const TechnicalSpecView: React.FC = () => {
           <button
             onClick={() => setActiveSection('pricing_code')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeSection === 'pricing_code' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeSection === 'pricing_code' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             4. Algorithme Prix Sénégal
@@ -76,7 +76,7 @@ export const TechnicalSpecView: React.FC = () => {
           <button
             onClick={() => setActiveSection('payment_api')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeSection === 'payment_api' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeSection === 'payment_api' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             5. Intégration Wave & Orange Money
@@ -103,7 +103,7 @@ export const TechnicalSpecView: React.FC = () => {
               </div>
 
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400 flex items-center justify-center text-blue-400">
                   <Server className="w-5 h-5" />
                 </div>
                 <h4 className="font-bold text-sm text-slate-100">Backend & Dispatch Engine</h4>
@@ -126,7 +126,7 @@ export const TechnicalSpecView: React.FC = () => {
             {/* Diagramme de flux textuel structuré */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
               <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                <Network className="w-4 h-4 text-emerald-400" />
+                <Network className="w-4 h-4 text-blue-400" />
                 Flux de Dispatch & Cycle de Vie d'une Course (Sénégal)
               </h3>
               
@@ -137,11 +137,11 @@ export const TechnicalSpecView: React.FC = () => {
                 <p>   Passager choisit: Wave Sénégal / Orange Money / Cash</p>
                 <br />
                 <p className="text-amber-400 font-bold">2. DISPATCH GÉOSPATIAL EN TEMPS RÉEL</p>
-                <p>   Backend interroge Redis: <span className="text-emerald-400">GEORADIUS drivers:locations {`{lat}`} {`{lng}`} 3 km WITHCOORD</span></p>
+                <p>   Backend interroge Redis: <span className="text-blue-400">GEORADIUS drivers:locations {`{lat}`} {`{lng}`} 3 km WITHCOORD</span></p>
                 <p>   Tri par proximité + note chauffeur + catégorie (Éco, Standard, Confort)</p>
                 <p>   Push WebSocket vers Chauffeur le plus proche (Timer 15s dégressif)</p>
                 <br />
-                <p className="text-emerald-400 font-bold">3. ACCEPTATION & TRACKING GPS EN DIRECT</p>
+                <p className="text-blue-400 font-bold">3. ACCEPTATION & TRACKING GPS EN DIRECT</p>
                 <p>   Chauffeur ACCEPTE ──► Socket Room `ride_{'{id}'}` créée</p>
                 <p>   Chauffeur GPS émet toutes les 3s ──► Passager reçoit coordonnées + Polyline animée</p>
                 <br />
@@ -166,7 +166,7 @@ export const TechnicalSpecView: React.FC = () => {
                 onClick={() => handleCopy(POSTGRES_SCHEMA, 'pg_schema')}
                 className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5"
               >
-                {copiedKey === 'pg_schema' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey === 'pg_schema' ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>Copier DDL SQL</span>
               </button>
             </div>
@@ -200,13 +200,13 @@ export const TechnicalSpecView: React.FC = () => {
                 onClick={() => handleCopy(FLUTTER_STRUCTURE, 'flutter_tree')}
                 className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5"
               >
-                {copiedKey === 'flutter_tree' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey === 'flutter_tree' ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>Copier Arborescence</span>
               </button>
             </div>
 
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
-              <pre className="text-xs font-mono text-emerald-300 overflow-x-auto bg-slate-950 p-4 rounded-xl leading-relaxed">
+              <pre className="text-xs font-mono text-blue-300 overflow-x-auto bg-slate-950 p-4 rounded-xl leading-relaxed">
                 <code>{FLUTTER_STRUCTURE}</code>
               </pre>
             </div>
@@ -225,7 +225,7 @@ export const TechnicalSpecView: React.FC = () => {
                 onClick={() => handleCopy(PRICING_ENGINE_CODE, 'pricing_engine')}
                 className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5"
               >
-                {copiedKey === 'pricing_engine' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey === 'pricing_engine' ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>Copier Code TS</span>
               </button>
             </div>
@@ -250,7 +250,7 @@ export const TechnicalSpecView: React.FC = () => {
                 onClick={() => handleCopy(PAYMENT_API_CODE, 'payment_code')}
                 className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5"
               >
-                {copiedKey === 'payment_code' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey === 'payment_code' ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>Copier Implémentation API</span>
               </button>
             </div>

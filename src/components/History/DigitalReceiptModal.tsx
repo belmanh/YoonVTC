@@ -72,7 +72,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
         {/* En-tête du reçu */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-900/40">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-900/40">
               Y
             </div>
             <div>
@@ -94,12 +94,12 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
           {/* Montant Total Payé */}
           <div className="text-center py-2 border-b border-slate-900 space-y-0.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Montant Total Payé</p>
-            <h2 className="text-2xl font-black text-emerald-400 font-mono tracking-tight">
+            <h2 className="text-2xl font-black text-blue-400 font-mono tracking-tight">
               {SenegalPaymentService.formatFCFA(ride.pricing.totalFare)}
             </h2>
             <div className="flex items-center justify-center gap-1.5 text-xs text-slate-300">
               {userRole === 'passenger' ? (
-                <span className="px-2.5 py-0.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 rounded-full font-bold text-[10px]">
+                <span className="px-2.5 py-0.5 bg-blue-950/80 text-blue-300 border border-blue-500/40 rounded-full font-bold text-[10px]">
                   Règlement direct auprès du chauffeur (Espèces ou P2P)
                 </span>
               ) : (
@@ -115,7 +115,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
                     </span>
                   )}
                   {ride.paymentMethod === 'cash' && (
-                    <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 rounded-full font-bold flex items-center gap-1 text-[10px]">
+                    <span className="px-2 py-0.5 bg-blue-950 text-blue-300 border border-blue-500/40 rounded-full font-bold flex items-center gap-1 text-[10px]">
                       <Banknote className="w-3 h-3" /> Espèces (Règlement direct)
                     </span>
                   )}
@@ -147,9 +147,18 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
           {/* Date & Détails de la course */}
           <div className="grid grid-cols-2 gap-2 text-xs border-b border-slate-900 pb-3">
             <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 font-semibold uppercase">Date & Heure</span>
+              <span className="text-[10px] text-slate-500 font-semibold uppercase">Date du trajet</span>
               <p className="text-slate-200 font-semibold">{dateFormatted}</p>
-              <p className="text-slate-400 text-[10px] font-mono">{timeFormatted}</p>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="space-y-0.5">
+                  <span className="text-[9px] text-slate-500 uppercase">Départ</span>
+                  <p className="text-slate-400 text-[10px] font-mono">{new Date(ride.startedAt || ride.createdAt).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] text-slate-500 uppercase">Arrivée</span>
+                  <p className="text-slate-400 text-[10px] font-mono">{new Date(ride.completedAt || ride.createdAt).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-0.5 text-right">
@@ -171,12 +180,12 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
             
             <div className="space-y-2">
               <div className="flex items-start space-x-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-400 mt-1 shrink-0"></div>
                 <div>
                   <p className="font-bold text-slate-200">{ride.pickup.name}</p>
                   <p className="text-[10px] text-slate-400">{ride.pickup.quarter}, {ride.pickup.city}</p>
                   {ride.landmarkHint && (
-                    <p className="text-[10px] text-emerald-400/90 italic mt-0.5">📍 Repère : {ride.landmarkHint}</p>
+                    <p className="text-[10px] text-blue-400/90 italic mt-0.5">📍 Repère : {ride.landmarkHint}</p>
                   )}
                 </div>
               </div>
@@ -200,7 +209,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
                 {ride.driver?.vehicle.brand} {ride.driver?.vehicle.model}
               </p>
               <div className="flex items-center justify-between pt-0.5">
-                <p className="text-[10px] font-mono text-emerald-400 font-bold">
+                <p className="text-[10px] font-mono text-blue-400 font-bold">
                   {ride.driver?.vehicle.plateNumber || 'DK-7482-BC'}
                 </p>
                 {ride.ratingGiven && (
@@ -270,7 +279,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
                     <span>Commission plateforme Yoon VTC (15%) :</span>
                     <span className="font-mono font-bold">-{SenegalPaymentService.formatFCFA(ride.pricing.platformCommission)}</span>
                   </div>
-                  <div className="flex justify-between text-emerald-400 font-bold text-xs">
+                  <div className="flex justify-between text-blue-400 font-bold text-xs">
                     <span>Gain net chauffeur :</span>
                     <span className="font-mono">{SenegalPaymentService.formatFCFA(ride.pricing.driverNetEarnings)}</span>
                   </div>
@@ -285,7 +294,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
           <button
             type="button"
             onClick={handleDownload}
-            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/30"
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/30"
           >
             {downloadSuccess ? (
               <>
@@ -306,7 +315,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
             className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 border border-slate-700"
             title="Partager le reçu"
           >
-            <Share2 className="w-4 h-4 text-emerald-400" />
+            <Share2 className="w-4 h-4 text-blue-400" />
             <span className="hidden sm:inline">{sharedSuccess ? 'Lien copié' : 'Partager'}</span>
           </button>
         </div>

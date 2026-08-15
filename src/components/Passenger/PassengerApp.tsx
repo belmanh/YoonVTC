@@ -266,6 +266,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const [category, setCategory] = useState<VehicleCategory>('standard');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wave');
   const [isSearchingLocation, setIsSearchingLocation] = useState<'pickup' | 'destination' | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
 
   // Repère visuel & Note Vocale
@@ -462,9 +463,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
   const driverPhoneClean = activeRide?.driver?.phone.replace(/[^0-9]/g, '') || '221775213489';
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 relative overflow-hidden font-sans select-none">
+    <div className="flex flex-col h-full bg-[#090b14] text-slate-100 relative overflow-hidden font-sans select-none dark before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] before:from-pink-900/20 before:via-[#090b14]/0 before:to-[#090b14]/0 after:absolute after:inset-0 after:bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] after:from-blue-900/20 after:via-[#090b14]/0 after:to-[#090b14]/0">
       {/* Top Header Uber Premium */}
-      <div className="px-4 py-3 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/80 flex items-center justify-between z-20 shadow-lg shrink-0">
+      <div className="px-4 py-3 bg-[#111827]/95 backdrop-blur-xl border-b border-slate-800/80 flex items-center justify-between z-20 shadow-lg shrink-0">
         <div 
           onClick={() => setShowHistoryModal(true)}
           className="flex items-center space-x-3 cursor-pointer group"
@@ -474,18 +475,17 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             <img
               src={passenger.avatar}
               alt={passenger.fullName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 shadow-md group-hover:scale-105 transition-transform"
+              className="w-10 h-10 rounded-full object-cover border-2 border-blue-400 shadow-md group-hover:scale-105 transition-transform"
             />
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-900"></span>
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-blue-400 rounded-full border-2 border-slate-900"></span>
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">{passenger.fullName}</h3>
+              <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-blue-400 transition-colors">{passenger.fullName}</h3>
               <span className="px-1.5 py-0.2 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-[10px] rounded-full flex items-center gap-0.5">
                 ★ {passenger.rating}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Passager Yoon VIP • Dakar ➔</p>
           </div>
         </div>
 
@@ -506,22 +506,22 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* Notification Système Simulée : Chauffeur à < 500m */}
       {showApproachingNotification && activeRide && activeRide.driver && (
-        <div className="absolute top-16 left-4 right-4 z-30 bg-slate-900/95 backdrop-blur-xl border-2 border-emerald-400 rounded-2xl shadow-2xl p-3.5 flex items-center space-x-3 animate-bounce">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400 shrink-0">
+        <div className="absolute top-16 left-4 right-4 z-30 bg-[#111827]/95 backdrop-blur-xl border-2 border-blue-400 rounded-2xl shadow-2xl p-3.5 flex items-center space-x-3 animate-bounce">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/50 flex items-center justify-center text-blue-400 shrink-0">
             <Car className="w-5 h-5 animate-pulse" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">🔔 Notification Yoon VTC</span>
+              <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider">🔔 Notification Yoon VTC</span>
               <button 
                 onClick={() => setShowApproachingNotification(false)}
-                className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800"
+                className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-[#1F2937]"
               >
                 ✕
               </button>
             </div>
             <p className="text-xs font-bold text-white mt-0.5">
-              Votre chauffeur <span className="text-emerald-400">{activeRide.driver.fullName}</span> est à moins de 500m !
+              Votre chauffeur <span className="text-blue-400">{activeRide.driver.fullName}</span> est à moins de 500m !
             </p>
             <p className="text-[10px] text-slate-300">
               Préparez-vous au départ : {activeRide.pickup.quarter}. Véhicule : {activeRide.driver.vehicle.brand} ({activeRide.driver.vehicle.plateNumber})
@@ -541,25 +541,26 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             activeRide={activeRide}
             assignedDriverLocation={assignedDriverLocation}
             onGpsLocatePassenger={handleDetectGps}
+            theme='dark'
           />
         </div>
 
         {/* Dynamic Glassmorphic Bottom Card floating on top of the Map */}
-        <div className="w-full max-h-[85%] bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800/90 rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between">
+        <div className="w-full max-h-[85%] bg-[#111827]/95 backdrop-blur-2xl border-t border-slate-800/90 rounded-t-3xl shadow-2xl p-4 overflow-y-auto z-10 flex flex-col justify-between">
           
           {/* ÉTAT 1: AUCUNE COURSE ACTIVE (RECHERCHE & CONFIGURATION DU TRAJET) */}
           {!activeRide && (
             <div className="space-y-3.5">
               {/* Trajet : Saisie Départ et Destination */}
-              <div className="space-y-2 bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800/50">
+              <div className="space-y-2 bg-[#0B0F19]/60 p-2.5 rounded-2xl border border-slate-800/50">
                 {/* Point de Départ */}
                 <div
                   onClick={() => setIsSearchingLocation('pickup')}
-                  className="flex items-center space-x-3 p-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
+                  className="flex items-center space-x-3 p-2 rounded-xl bg-[#111827]/40 hover:bg-[#1F2937]/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
                 >
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20 shrink-0"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 ring-4 ring-blue-400/20 shrink-0"></div>
                   <div className="flex-1 truncate">
-                    <p className="text-[9px] uppercase font-bold text-emerald-400 tracking-wider">Point de départ</p>
+                    <p className="text-[9px] uppercase font-bold text-blue-400 tracking-wider">Point de départ</p>
                     <p className="text-xs font-bold text-slate-100 truncate">{pickup.name}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-500" />
@@ -568,7 +569,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 {/* Destination */}
                 <div
                   onClick={() => setIsSearchingLocation('destination')}
-                  className="flex items-center space-x-3 p-2 rounded-xl bg-slate-900/40 hover:bg-slate-800/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
+                  className="flex items-center space-x-3 p-2 rounded-xl bg-[#111827]/40 hover:bg-[#1F2937]/60 border border-slate-800/30 cursor-pointer transition-all active:scale-[0.99]"
                 >
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/20 shrink-0"></div>
                   <div className="flex-1 truncate">
@@ -586,7 +587,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   <span className={`px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
                     ((new Date().getHours() >= 7 && new Date().getHours() <= 10) || (new Date().getHours() >= 17 && new Date().getHours() <= 20))
                       ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-                      : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                      : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
                   }`}>
                     <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-current"></span>
                     <span>
@@ -612,7 +613,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                         setDestination(fav.d);
                         setSelectedFixedPackage(null);
                       }}
-                      className="px-2.5 py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[11px] font-semibold text-slate-300 shrink-0 transition-all active:scale-95 flex items-center gap-1"
+                      className="px-2.5 py-1 bg-[#0B0F19] hover:bg-[#1F2937] border border-slate-800 rounded-xl text-[11px] font-semibold text-slate-300 shrink-0 transition-all active:scale-95 flex items-center gap-1"
                     >
                       <span>{fav.name}</span>
                     </button>
@@ -630,7 +631,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowTripDetailsModal(true)}
-                    className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                    className="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 active:scale-95 transition-all"
                   >
                     <Info className="w-3.5 h-3.5" />
                     <span>Détails & Options</span>
@@ -652,26 +653,26 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                         onClick={() => setCategory(catKey)}
                         className={`p-2 rounded-xl border cursor-pointer transition-all flex flex-col justify-between shrink-0 w-36 snap-start active:scale-[0.98] ${
                           isSelected
-                            ? 'bg-emerald-950/40 border-emerald-400 ring-1 ring-emerald-400 text-white shadow-lg shadow-emerald-950/40'
-                            : 'bg-slate-950/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                            ? 'bg-blue-950/40 border-blue-400 ring-1 ring-blue-400 text-white shadow-lg shadow-blue-950/40'
+                            : 'bg-[#0B0F19]/70 border-slate-800/60 text-slate-400 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-1 truncate">
-                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                            {catKey === 'eco' && <Car className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
                             {catKey === 'standard' && <CarFront className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
                             {catKey === 'confort' && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
                             {catKey === 'interurbain' && <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
                             <span className="text-[11px] font-bold text-slate-100 truncate">{rule.name.split(' ')[1] || rule.name}</span>
                           </div>
-                          <span className="text-[10px] text-slate-300 bg-slate-900/90 px-1.5 py-0.5 rounded-md shrink-0 flex items-center gap-1 font-mono">
-                            <Users className="w-3 h-3 text-emerald-400" />
+                          <span className="text-[10px] text-slate-300 bg-[#111827]/90 px-1.5 py-0.5 rounded-md shrink-0 flex items-center gap-1 font-mono">
+                            <Users className="w-3 h-3 text-blue-400" />
                             <span>{rule.capacity.replace('places', '').trim()}</span>
                           </span>
                         </div>
 
                         <div className="flex items-baseline justify-between mt-1 pt-1 border-t border-slate-800/40">
-                          <span className={`text-xs font-black ${isSelected ? 'text-emerald-400' : 'text-slate-200'}`}>
+                          <span className={`text-xs font-black ${isSelected ? 'text-blue-400' : 'text-slate-200'}`}>
                             {SenegalPaymentService.formatFCFA(catEstimate.breakdown.totalFare)}
                           </span>
                         </div>
@@ -690,7 +691,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowTripDetailsModal(true)}
-                  className="text-emerald-400 font-bold hover:underline"
+                  className="text-blue-400 font-bold hover:underline"
                 >
                   Voir les détails ➔
                 </button>
@@ -700,10 +701,10 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmBooking}
-                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-400 hover:to-pink-400 active:scale-[0.99] text-white font-black text-sm rounded-2xl shadow-xl shadow-pink-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer"
               >
                 <span>Commander Yoon</span>
-                <span className="bg-slate-950/20 px-2 py-0.5 rounded-lg text-xs font-bold text-slate-950">
+                <span className="bg-[#0B0F19]/20 px-2 py-0.5 rounded-lg text-xs font-bold text-white">
                   {SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}
                 </span>
               </button>
@@ -715,28 +716,28 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             <div className="py-6 flex flex-col items-center justify-center text-center space-y-5">
               {/* Animation Radar / Sonar */}
               <div className="relative w-28 h-28 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border border-emerald-500/30 animate-ping"></div>
-                <div className="absolute inset-2 rounded-full border border-emerald-500/40 animate-pulse"></div>
+                <div className="absolute inset-0 rounded-full border border-blue-500/30 animate-ping"></div>
+                <div className="absolute inset-2 rounded-full border border-blue-500/40 animate-pulse"></div>
 
                 {/* Icône Centrale Voiture */}
-                <div className="relative w-14 h-14 bg-slate-950 border-2 border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 shadow-2xl z-10">
-                  <Car className="w-7 h-7 text-emerald-400 animate-pulse" />
+                <div className="relative w-14 h-14 bg-[#0B0F19] border-2 border-blue-400 rounded-full flex items-center justify-center text-blue-400 shadow-2xl z-10">
+                  <Car className="w-7 h-7 text-blue-400 animate-pulse" />
                 </div>
               </div>
 
               <div>
                 <h4 className="font-black text-base text-white tracking-tight">Recherche d'un chauffeur Yoon...</h4>
                 <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                  Envoi de la requête aux chauffeurs <strong className="text-emerald-400">{activeRide.category.toUpperCase()}</strong> disponibles à {pickup.quarter}.
+                  Envoi de la requête aux chauffeurs <strong className="text-blue-400">{activeRide.category.toUpperCase()}</strong> disponibles à {pickup.quarter}.
                 </p>
                 {activeRide.landmarkHint && (
-                  <p className="text-xs text-emerald-300 font-mono mt-1">📍 Repère transmis : "{activeRide.landmarkHint}"</p>
+                  <p className="text-xs text-blue-300 font-mono mt-1">📍 Repère transmis : "{activeRide.landmarkHint}"</p>
                 )}
               </div>
 
               <button
                 onClick={() => setShowCancelModal(true)}
-                className="px-5 py-2.5 bg-slate-950 hover:bg-slate-800 text-rose-400 border border-rose-500/40 text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
+                className="px-5 py-2.5 bg-[#0B0F19] hover:bg-[#1F2937] text-rose-400 border border-rose-500/40 text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
               >
                 Annuler la recherche
               </button>
@@ -747,12 +748,11 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           {activeRide && (activeRide.status === 'driver_assigned' || activeRide.status === 'driver_arrived' || activeRide.status === 'in_progress') && activeRide.driver && (
             <div className="space-y-3.5">
               {/* Barre de Progression de la Course */}
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-[#0B0F19] p-3 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                     <div>
-                      <p className="text-[10px] uppercase font-black tracking-wider text-emerald-400">
+                      <p className="text-[10px] uppercase font-black tracking-wider text-blue-400">
                         {activeRide.status === 'driver_assigned' && 'Chauffeur en approche'}
                         {activeRide.status === 'driver_arrived' && 'Chauffeur arrivé sur place'}
                         {activeRide.status === 'in_progress' && 'En route vers la destination'}
@@ -765,20 +765,20 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                     </div>
                   </div>
 
-                  <span className="px-2 py-1 bg-emerald-950 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold">
+                  <span className="px-2 py-1 bg-blue-950 text-blue-400 border border-blue-500/40 rounded-lg text-xs font-mono font-bold">
                     #{activeRide.id}
                   </span>
                 </div>
               </div>
 
               {/* Carte Profil Chauffeur & Véhicule */}
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2.5">
+              <div className="bg-[#0B0F19] p-3 rounded-2xl border border-slate-800 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <img
                       src={activeRide.driver.avatar}
                       alt={activeRide.driver.fullName}
-                      className="w-11 h-11 rounded-full object-cover border-2 border-emerald-400 shadow-md"
+                      className="w-11 h-11 rounded-full object-cover border-2 border-blue-400 shadow-md"
                     />
                     <div>
                       <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
@@ -788,7 +788,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                       <p className="text-[11px] text-slate-300">
                         {activeRide.driver.vehicle.brand} {activeRide.driver.vehicle.model} ({activeRide.driver.vehicle.color})
                       </p>
-                      <p className="text-[10px] font-mono text-emerald-400 font-bold">
+                      <p className="text-[10px] font-mono text-blue-400 font-bold">
                         Plaque: {activeRide.driver.vehicle.plateNumber}
                       </p>
                     </div>
@@ -812,7 +812,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 {/* 1. Appel Téléphonique Direct */}
                 <a
                   href={`tel:${activeRide.driver.phone}`}
-                  className="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/40 active:scale-95 text-xs transition-transform"
+                  className="py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/40 active:scale-95 text-xs transition-transform"
                 >
                   <Phone className="w-4 h-4 fill-current animate-bounce" />
                   <span>Appel Direct ({activeRide.driver.phone})</span>
@@ -823,7 +823,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   href={`https://wa.me/${driverPhoneClean}?text=${encodeURIComponent(`Bonjour ${activeRide.driver.fullName}, je suis votre passager pour la course #${activeRide.id} Yoon VTC.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40 active:scale-95 text-xs transition-transform"
+                  className="py-3 bg-blue-700 hover:bg-blue-600 text-white font-black rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-950/40 active:scale-95 text-xs transition-transform"
                 >
                   <Smartphone className="w-4 h-4" />
                   <span>Appel WhatsApp</span>
@@ -844,9 +844,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowShareModal(true)}
-                  className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-xl flex items-center justify-center space-x-1.5 border border-slate-700 active:scale-95 text-[11px]"
+                  className="py-2.5 bg-[#1F2937] hover:bg-slate-700 text-slate-100 font-bold rounded-xl flex items-center justify-center space-x-1.5 border border-slate-700 active:scale-95 text-[11px]"
                 >
-                  <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <Share2 className="w-3.5 h-3.5 text-blue-400" />
                   <span>Partager</span>
                 </button>
 
@@ -865,8 +865,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
           {/* ÉTAT 4: COURSE TERMINÉE (NOTATION 5 ÉTOILES, BADGES & REÇU NUMÉRIQUE) */}
           {activeRide && activeRide.status === 'completed' && (
             <div className="space-y-3.5 text-center py-1">
-              <div className="w-12 h-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 mx-auto shadow-lg">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <div className="w-12 h-12 bg-blue-500/20 border-2 border-blue-400 rounded-full flex items-center justify-center text-blue-400 mx-auto shadow-lg">
+                <CheckCircle2 className="w-6 h-6 text-blue-400" />
               </div>
               
               <div>
@@ -875,10 +875,10 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               </div>
 
               {/* Bouton Reçu Numérique Officiel */}
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-[#0B0F19] p-3 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-400">Total réglé :</span>
-                  <span className="font-black text-emerald-400 text-sm font-mono">
+                  <span className="font-black text-blue-400 text-sm font-mono">
                     {SenegalPaymentService.formatFCFA(activeRide.pricing.totalFare)}
                   </span>
                 </div>
@@ -886,9 +886,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowReceiptModal(true)}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2.5 bg-[#111827] hover:bg-[#1F2937] border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <FileText className="w-4 h-4 text-blue-400" />
                   <span>Afficher le Reçu Numérique & Détails</span>
                 </button>
               </div>
@@ -896,7 +896,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               {/* Évaluation 5 Étoiles Interactive */}
               <div className="space-y-2.5">
                 <p className="text-xs font-bold text-slate-200">
-                  Notez votre expérience avec <strong className="text-emerald-400">{activeRide.driver?.fullName}</strong>
+                  Notez votre expérience avec <strong className="text-blue-400">{activeRide.driver?.fullName}</strong>
                 </p>
                 
                 <div className="flex justify-center items-center space-x-2">
@@ -927,8 +927,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                           onClick={() => toggleBadge(badge.id)}
                           className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all border ${
                             isSelected
-                              ? 'bg-emerald-950/60 border-emerald-400 text-emerald-300 shadow-sm'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                              ? 'bg-blue-950/60 border-blue-400 text-blue-300 shadow-sm'
+                              : 'bg-[#0B0F19] border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
                           <span>{badge.icon}</span>
@@ -950,8 +950,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                         onClick={() => setTipAmount(amount)}
                         className={`py-1.5 rounded-xl border text-xs font-bold transition-all ${
                           tipAmount === amount
-                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            ? 'bg-blue-500 text-slate-950 border-blue-400 shadow-md'
+                            : 'bg-[#0B0F19] text-slate-400 border-slate-800 hover:border-slate-700'
                         }`}
                       >
                         {amount === 0 ? 'Aucun' : `+${amount} F`}
@@ -966,13 +966,13 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   placeholder="Laisser un compliment ou un commentaire pour le chauffeur..."
                   value={ratingComment}
                   onChange={(e) => setRatingComment(e.target.value)}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 resize-none"
+                  className="w-full p-2.5 bg-[#0B0F19] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 resize-none"
                 ></textarea>
               </div>
 
               <button
                 onClick={handleFinishRating}
-                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.99] transition-all cursor-pointer"
+                className="w-full py-3.5 bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-blue-500/20 active:scale-[0.99] transition-all cursor-pointer"
               >
                 Envoyer mon avis & Clôturer
               </button>
@@ -1009,24 +1009,48 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL DÉTAILS ET OPTIONS DU TRAJET */}
       {showTripDetailsModal && (
-        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-end animate-fadeIn">
-          <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
+        <div className="absolute inset-0 bg-[#0B0F19]/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-end animate-fadeIn">
+          <div className="w-full bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90%] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Info className="w-5 h-5 text-emerald-400" />
+                <Info className="w-5 h-5 text-blue-400" />
                 Détails du trajet & Tarifs
               </h3>
               <button
                 onClick={() => setShowTripDetailsModal(false)}
-                className="p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Weather Widget */}
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-sky-100 to-indigo-100 dark:from-sky-900/40 dark:to-indigo-900/40 rounded-2xl border border-sky-200 dark:border-sky-800/50">
+              <div className="flex items-center space-x-3">
+                <div className="text-3xl">🌤️</div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-sky-900 dark:text-sky-100">Dakar, Sénégal</span>
+                  <span className="text-[10px] text-sky-800/80 dark:text-sky-200/80 font-medium">Partiellement nuageux</span>
+                </div>
+              </div>
+              <div className="text-xl font-black text-sky-950 dark:text-white">28°C</div>
+            </div>
+
+            {/* Time Estimation */}
+            <div className="grid grid-cols-2 gap-3 p-3 bg-[#0B0F19] rounded-2xl border border-slate-800/80 mb-4">
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">Départ immédiat</p>
+                <p className="text-sm font-black text-white">{new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">Arrivée estimée</p>
+                <p className="text-sm font-black text-white">{new Date(Date.now() + estimate.durationMinutes * 60000).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"})}</p>
+              </div>
+            </div>
+
             {/* Itinerary Metrics */}
-            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-800/80">
+            <div className="grid grid-cols-2 gap-3 p-3 bg-[#0B0F19] rounded-2xl border border-slate-800/80">
               <div className="space-y-0.5">
                 <p className="text-[10px] text-slate-400 uppercase font-semibold">Distance totale</p>
                 <p className="text-sm font-black text-white">{estimate.distanceKm} km</p>
@@ -1040,7 +1064,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             {/* Fare Breakdown Details */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Détails de la tarification ({category.toUpperCase()})</h4>
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/85 space-y-2 text-xs">
+              <div className="p-3 bg-[#0B0F19] rounded-xl border border-slate-800/85 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Prise en charge de base</span>
                   <span className="font-semibold text-slate-200">{SenegalPaymentService.formatFCFA(estimate.breakdown.baseFare)}</span>
@@ -1056,12 +1080,12 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 {estimate.breakdown.tollFee > 0 && (
                   <div className="flex justify-between">
                     <span className="text-slate-400">Péage Autoroute Dakar inclus</span>
-                    <span className="font-semibold text-emerald-400">+{SenegalPaymentService.formatFCFA(estimate.breakdown.tollFee)}</span>
+                    <span className="font-semibold text-blue-400">+{SenegalPaymentService.formatFCFA(estimate.breakdown.tollFee)}</span>
                   </div>
                 )}
                 <div className="border-t border-slate-800/60 pt-2 flex justify-between font-bold text-sm">
                   <span className="text-white">Total estimé</span>
-                  <span className="text-emerald-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
+                  <span className="text-blue-400">{SenegalPaymentService.formatFCFA(estimate.breakdown.totalFare)}</span>
                 </div>
               </div>
             </div>
@@ -1070,7 +1094,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Forfaits fixes directs</h4>
-                <span className="text-[9px] text-emerald-400">péage inclus</span>
+                <span className="text-[9px] text-blue-400">péage inclus</span>
               </div>
               <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
                 {FIXED_PRICE_PACKAGES.map((pkg) => {
@@ -1085,8 +1109,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all border flex flex-col items-start ${
                         isSelected
-                          ? 'bg-emerald-950/80 border-emerald-400 text-white ring-1 ring-emerald-400 shadow-md'
-                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                          ? 'bg-blue-950/80 border-blue-400 text-white ring-1 ring-blue-400 shadow-md'
+                          : 'bg-[#0B0F19] border-slate-800 text-slate-300 hover:border-slate-700'
                       }`}
                     >
                       <span>{pkg.name.replace('Forfait ', '')}</span>
@@ -1106,7 +1130,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowVoiceRecorderModal(true)}
-                  className="px-2 py-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/30 rounded-lg text-emerald-300 text-[10px] font-bold flex items-center gap-1"
+                  className="px-2 py-1 bg-blue-950 hover:bg-blue-900 border border-blue-500/30 rounded-lg text-blue-300 text-[10px] font-bold flex items-center gap-1"
                 >
                   <Mic className="w-3 h-3" />
                   <span>{voiceNoteData ? 'Modifier vocal' : '+ Note vocale'}</span>
@@ -1118,15 +1142,15 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 placeholder="Ex: Devant la Brioche Dorée, face à la mosquée ou portail vert..."
                 value={landmarkHint}
                 onChange={(e) => setLandmarkHint(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-emerald-400"
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-400"
               />
 
               {voiceNoteData && (
-                <div className="p-2 bg-emerald-950/40 border border-emerald-500/20 rounded-xl flex items-center justify-between">
+                <div className="p-2 bg-blue-950/40 border border-blue-500/20 rounded-xl flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Volume2 className="w-3.5 h-3.5 text-blue-400" />
                     <div>
-                      <p className="text-xs font-bold text-emerald-300">Message vocal joint ({voiceNoteData.duration}s)</p>
+                      <p className="text-xs font-bold text-blue-300">Message vocal joint ({voiceNoteData.duration}s)</p>
                       <p className="text-[10px] text-slate-400 truncate max-w-xs">{voiceNoteData.textSummary}</p>
                     </div>
                   </div>
@@ -1144,7 +1168,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             {/* Bottom Action */}
             <button
               onClick={() => setShowTripDetailsModal(false)}
-              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
+              className="w-full py-2.5 bg-[#1F2937] hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
             >
               Fermer et retourner à l'écran principal
             </button>
@@ -1163,14 +1187,14 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL RECHERCHE DE LIEU */}
       {isSearchingLocation && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl z-50 p-4 flex flex-col animate-fadeIn">
+        <div className="absolute inset-0 bg-[#0B0F19]/95 backdrop-blur-xl z-50 p-4 flex flex-col animate-fadeIn">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="text-sm font-bold text-white">
               {isSearchingLocation === 'pickup' ? 'Définir le lieu de départ' : 'Définir la destination'}
             </h3>
             <button
               onClick={() => setIsSearchingLocation(null)}
-              className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              className="p-1 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1183,7 +1207,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               placeholder="Rechercher un quartier ou un lieu à Dakar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+              className="w-full pl-9 pr-4 py-2.5 bg-[#111827] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
               autoFocus
             />
           </div>
@@ -1198,7 +1222,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                 <div
                   key={fav.id}
                   onClick={() => handleSelectLocation(fav.location)}
-                  className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer flex items-center space-x-2 transition-all active:scale-95"
+                  className="p-2 bg-[#111827] hover:bg-[#1F2937] border border-slate-800 rounded-xl cursor-pointer flex items-center space-x-2 transition-all active:scale-95"
                 >
                   <span className="text-base">{fav.icon}</span>
                   <div className="flex-1 truncate">
@@ -1219,9 +1243,9 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               <div
                 key={idx}
                 onClick={() => handleSelectLocation(loc)}
-                className="p-2.5 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800 cursor-pointer flex items-center space-x-3 transition-colors"
+                className="p-2.5 rounded-xl hover:bg-[#111827] border border-transparent hover:border-slate-800 cursor-pointer flex items-center space-x-3 transition-colors"
               >
-                <div className="w-7 h-7 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-blue-950/60 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 truncate">
@@ -1236,8 +1260,8 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
 
       {/* MODAL ANNULATION DE COURSE AVEC MOTIFS */}
       {showCancelModal && (
-        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-center items-center animate-fadeIn">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div className="absolute inset-0 bg-[#0B0F19]/90 backdrop-blur-xl z-50 p-4 flex flex-col justify-center items-center animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-rose-500" />
@@ -1245,7 +1269,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
               </h3>
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1 rounded-full bg-[#1F2937] text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1263,7 +1287,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
                   className={`p-2.5 rounded-xl border cursor-pointer text-xs font-medium transition-all flex items-center justify-between ${
                     selectedCancelReason === reason.id
                       ? 'bg-rose-950/40 border-rose-500 text-rose-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      : 'bg-[#0B0F19] border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
                   <span>{reason.label}</span>
@@ -1275,7 +1299,7 @@ export const PassengerApp: React.FC<PassengerAppProps> = ({
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+                className="flex-1 py-2.5 bg-[#1F2937] hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
               >
                 Garder la course
               </button>

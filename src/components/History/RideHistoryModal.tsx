@@ -56,7 +56,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
         {/* En-tête */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-emerald-950 border border-emerald-500/40 rounded-xl text-emerald-400">
+            <div className="p-2 bg-blue-950 border border-blue-500/40 rounded-xl text-blue-400">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -80,7 +80,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
             <span className="text-[10px] text-slate-400 uppercase font-semibold">
               {userRole === 'passenger' ? 'Total Dépenses Courses' : 'Total Chiffre d’Affaires Courses'}
             </span>
-            <p className="text-lg font-black text-emerald-400 font-mono">
+            <p className="text-lg font-black text-blue-400 font-mono">
               {SenegalPaymentService.formatFCFA(totalSpentOrEarned)}
             </p>
           </div>
@@ -94,7 +94,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
           <button
             onClick={() => setFilterType('all')}
             className={`flex-1 py-1.5 rounded-lg font-bold transition-colors ${
-              filterType === 'all' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              filterType === 'all' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Toutes ({validPastRides.length})
@@ -102,7 +102,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
           <button
             onClick={() => setFilterType('interurbain')}
             className={`flex-1 py-1.5 rounded-lg font-bold transition-colors ${
-              filterType === 'interurbain' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              filterType === 'interurbain' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Forfaits AIBD / Saly
@@ -110,7 +110,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
           <button
             onClick={() => setFilterType('dakar')}
             className={`flex-1 py-1.5 rounded-lg font-bold transition-colors ${
-              filterType === 'dakar' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              filterType === 'dakar' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Dakar Urbain
@@ -124,11 +124,11 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
               <div
                 key={ride.id}
                 onClick={() => setSelectedRideForReceipt(ride)}
-                className="p-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-500/50 rounded-xl cursor-pointer transition-all space-y-2 group shadow-sm"
+                className="p-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-blue-500/50 rounded-xl cursor-pointer transition-all space-y-2 group shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono text-xs font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+                    <span className="font-mono text-xs font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
                       #{ride.id}
                     </span>
                     {ride.isFixedPricePackage && (
@@ -137,7 +137,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="font-mono font-bold text-emerald-400 text-sm">
+                  <span className="font-mono font-bold text-blue-400 text-sm">
                     {SenegalPaymentService.formatFCFA(ride.pricing.totalFare)}
                   </span>
                 </div>
@@ -145,7 +145,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
                 {/* Trajet */}
                 <div className="space-y-1 text-xs">
                   <div className="flex items-center space-x-2 text-slate-300">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></div>
+                    <div className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></div>
                     <span className="truncate">{ride.pickup.quarter} ({ride.pickup.name})</span>
                   </div>
                   <div className="flex items-center space-x-2 text-slate-300">
@@ -174,7 +174,7 @@ export const RideHistoryModal: React.FC<RideHistoryModalProps> = ({
                     )}
                   </div>
 
-                  <span className="text-emerald-400 font-bold group-hover:underline flex items-center gap-0.5">
+                  <span className="text-blue-400 font-bold group-hover:underline flex items-center gap-0.5">
                     <span>Voir reçu</span>
                     <ChevronRight className="w-3 h-3" />
                   </span>

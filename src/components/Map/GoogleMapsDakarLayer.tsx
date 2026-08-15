@@ -143,7 +143,7 @@ export const GoogleMapsDakarLayer: React.FC<GoogleMapsDakarLayerProps> = ({
             title={`Départ : ${selectedPickup.name}`}
           >
             <div className="flex flex-col items-center">
-              <span className="px-2 py-0.5 bg-emerald-700 text-white text-[10px] font-bold rounded shadow-lg whitespace-nowrap mb-1">
+              <span className="px-2 py-0.5 bg-blue-700 text-white text-[10px] font-bold rounded shadow-lg whitespace-nowrap mb-1">
                 📍 DÉPART
               </span>
               <Pin background="#047857" glyphColor="#ffffff" borderColor="#ffffff" />
@@ -175,11 +175,11 @@ export const GoogleMapsDakarLayer: React.FC<GoogleMapsDakarLayerProps> = ({
               position={{ lat: d.currentLocation.lat, lng: d.currentLocation.lng }}
               title={`${d.fullName} (${d.vehicle.brand} ${d.vehicle.model})`}
             >
-              <div className="relative flex items-center justify-center w-8 h-8 bg-slate-900 border-2 border-emerald-400 rounded-full shadow-lg text-emerald-400">
+              <div className="relative flex items-center justify-center w-8 h-8 bg-slate-900 border-2 border-blue-400 rounded-full shadow-lg text-blue-400">
                 <span className="text-xs">🚗</span>
                 <span className="absolute -bottom-1 -right-1 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                 </span>
               </div>
             </AdvancedMarker>
@@ -192,8 +192,8 @@ export const GoogleMapsDakarLayer: React.FC<GoogleMapsDakarLayerProps> = ({
             title="Chauffeur en approche (GPS Live)"
           >
             <div className="relative flex items-center justify-center w-10 h-10">
-              <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping"></div>
-              <div className="w-9 h-9 bg-emerald-600 border-2 border-white rounded-full shadow-2xl flex items-center justify-center text-white z-10 text-sm">
+              <div className="absolute inset-0 rounded-full bg-blue-500/30 animate-ping"></div>
+              <div className="w-9 h-9 bg-blue-600 border-2 border-white rounded-full shadow-2xl flex items-center justify-center text-white z-10 text-sm">
                 🚖
               </div>
             </div>

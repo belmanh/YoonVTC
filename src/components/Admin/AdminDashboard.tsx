@@ -74,13 +74,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Top Header Admin */}
       <div className="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-emerald-900/30">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-900/30">
             Y
           </div>
           <div>
             <h2 className="text-base font-extrabold text-slate-100 flex items-center gap-2">
               Panneau d'Administration Yoon VTC
-              <span className="px-2 py-0.5 bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono rounded">
+              <span className="px-2 py-0.5 bg-blue-950 border border-blue-500/40 text-blue-400 text-[10px] font-mono rounded">
                 PROD SÉNÉGAL
               </span>
             </h2>
@@ -95,7 +95,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={() => setActiveTab('overview')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeTab === 'overview' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'overview' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Vue d'ensemble
@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={() => setActiveTab('drivers')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'drivers' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'drivers' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Chauffeurs & KYC
@@ -116,7 +116,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={() => setActiveTab('rides')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeTab === 'rides' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'rides' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Courses & Dispatch
@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={() => setActiveTab('pricing')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeTab === 'pricing' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'pricing' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Tarifs & Zones
@@ -132,7 +132,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={() => setActiveTab('finance')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-              activeTab === 'finance' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'finance' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Finances & Règlements
@@ -151,12 +151,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm">
                 <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
                   <span>Volume d'affaires (GMV)</span>
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <DollarSign className="w-4 h-4 text-blue-400" />
                 </div>
                 <h3 className="text-xl font-black text-slate-100">
                   {SenegalPaymentService.formatFCFA(totalVolumeFCFA)}
                 </h3>
-                <p className="text-[11px] text-emerald-400 mt-1 font-semibold">+18.4% ce mois</p>
+                <p className="text-[11px] text-blue-400 mt-1 font-semibold">+18.4% ce mois</p>
               </div>
 
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm">
@@ -178,7 +178,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <h3 className="text-xl font-black text-slate-100">
                   {activeOnlineDrivers} <span className="text-xs font-normal text-slate-400">/ {drivers.length} inscrits</span>
                 </h3>
-                <p className="text-[11px] text-emerald-400 mt-1 font-semibold">92% disponibilité Dakar</p>
+                <p className="text-[11px] text-blue-400 mt-1 font-semibold">92% disponibilité Dakar</p>
               </div>
 
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm">
@@ -196,14 +196,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-emerald-400" />
+                    <MapPin className="w-4 h-4 text-blue-400" />
                     Carte en direct de la Flotte (Dakar, Thiès, AIBD, Petite Côte)
                   </h3>
                   <p className="text-xs text-slate-400">Positions GPS rafraîchies toutes les 3 secondes</p>
                 </div>
                 <div className="flex items-center space-x-3 text-xs">
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> En Ligne
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> En Ligne
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span> En Course
@@ -235,7 +235,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     placeholder="Rechercher chauffeur, plaque, téléphone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-72"
+                    className="pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-72"
                   />
                 </div>
 
@@ -254,7 +254,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </button>
                   <button
                     onClick={() => setDriverFilter('approved')}
-                    className={`px-3 py-1 rounded-lg ${driverFilter === 'approved' ? 'bg-emerald-950 text-emerald-400 font-bold' : 'text-slate-400'}`}
+                    className={`px-3 py-1 rounded-lg ${driverFilter === 'approved' ? 'bg-blue-950 text-blue-400 font-bold' : 'text-slate-400'}`}
                   >
                     Validés
                   </button>
@@ -303,7 +303,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </td>
                       <td className="p-3.5">
                         {d.kyc.status === 'approved' && (
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold inline-flex items-center gap-1">
+                          <span className="px-2.5 py-1 rounded-full bg-blue-950 text-blue-400 border border-blue-500/40 text-[10px] font-bold inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Validé
                           </span>
                         )}
@@ -313,7 +313,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </span>
                         )}
                       </td>
-                      <td className="p-3.5 font-bold text-emerald-400">
+                      <td className="p-3.5 font-bold text-blue-400">
                         {SenegalPaymentService.formatFCFA(d.walletBalance)}
                       </td>
                       <td className="p-3.5 text-right">
@@ -373,7 +373,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <p className="text-[10px] text-slate-400">{r.distanceKm} km • {r.durationMinutes} min</p>
                       </td>
                       <td className="p-3.5">
-                        <p className="font-bold text-emerald-400">{SenegalPaymentService.formatFCFA(r.pricing.totalFare)}</p>
+                        <p className="font-bold text-blue-400">{SenegalPaymentService.formatFCFA(r.pricing.totalFare)}</p>
                         <p className="text-[10px] text-slate-400">Com: {r.pricing.platformCommission} F</p>
                       </td>
                       <td className="p-3.5">
@@ -383,7 +383,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </td>
                       <td className="p-3.5">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          r.status === 'completed' ? 'bg-emerald-950 text-emerald-400' :
+                          r.status === 'completed' ? 'bg-blue-950 text-blue-400' :
                           r.status === 'in_progress' ? 'bg-sky-950 text-sky-400' : 'bg-amber-950 text-amber-400'
                         }`}>
                           {r.status}
@@ -412,7 +412,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div key={catKey} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-sm text-slate-100">{rule.name}</h4>
-                      <span className="text-xs bg-slate-800 px-2 py-0.5 rounded text-emerald-400 font-bold">
+                      <span className="text-xs bg-slate-800 px-2 py-0.5 rounded text-blue-400 font-bold">
                         Commission : {(rule.commissionRate * 100).toFixed(0)}%
                       </span>
                     </div>
@@ -477,7 +477,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <select
                         value={z.surgeFactor}
                         onChange={(e) => onUpdateZoneSurge(z.id, Number(e.target.value))}
-                        className="bg-slate-900 border border-slate-700 px-2 py-1 rounded text-emerald-400 font-bold"
+                        className="bg-slate-900 border border-slate-700 px-2 py-1 rounded text-blue-400 font-bold"
                       >
                         <option value="1.0">1.0x (Normal)</option>
                         <option value="1.15">1.15x (Modéré)</option>
@@ -500,9 +500,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                   <span>Commissions Encaissées</span>
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <DollarSign className="w-4 h-4 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-black text-emerald-400">
+                <h3 className="text-xl font-black text-blue-400">
                   {SenegalPaymentService.formatFCFA(totalCommissionFCFA)}
                 </h3>
               </div>
@@ -520,7 +520,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                   <span>Retraits Instantanés Réussis</span>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-blue-400" />
                 </div>
                 <h3 className="text-xl font-black text-slate-100">{payouts.length + 12} virements</h3>
               </div>
@@ -539,7 +539,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-black text-emerald-400">{SenegalPaymentService.formatFCFA(p.amount)}</p>
+                      <p className="font-black text-blue-400">{SenegalPaymentService.formatFCFA(p.amount)}</p>
                       <span className="text-[10px] uppercase font-bold text-sky-400">{p.method} (Succès)</span>
                     </div>
                   </div>
@@ -570,7 +570,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <img
                   src={selectedDriverForKyc.avatar}
                   alt={selectedDriverForKyc.fullName}
-                  className="w-12 h-12 rounded-full object-cover border border-emerald-400"
+                  className="w-12 h-12 rounded-full object-cover border border-blue-400"
                 />
                 <div>
                   <h4 className="font-bold text-slate-100 text-sm">{selectedDriverForKyc.fullName}</h4>
@@ -584,7 +584,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-200">
                     <span>1. Carte Nationale d'Identité Sénégalaise (CNI)</span>
-                    <span className="text-emerald-400">Valide</span>
+                    <span className="text-blue-400">Valide</span>
                   </div>
                   <p className="text-[11px] text-slate-400 font-mono">N° CNI: {selectedDriverForKyc.kyc.cniNumber}</p>
                 </div>
@@ -592,7 +592,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-200">
                     <span>2. Permis de Conduire Sénégalais</span>
-                    <span className="text-emerald-400">Valide (Cat. B)</span>
+                    <span className="text-blue-400">Valide (Cat. B)</span>
                   </div>
                   <p className="text-[11px] text-slate-400 font-mono">N° Permis: {selectedDriverForKyc.kyc.licenseNumber}</p>
                 </div>
@@ -600,7 +600,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-200">
                     <span>3. Carte Grise du Véhicule</span>
-                    <span className="text-emerald-400">Propriétaire conforme</span>
+                    <span className="text-blue-400">Propriétaire conforme</span>
                   </div>
                   <p className="text-[11px] text-slate-400">
                     {selectedDriverForKyc.vehicle.brand} {selectedDriverForKyc.vehicle.model} ({selectedDriverForKyc.vehicle.year})
@@ -610,7 +610,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-200">
                     <span>4. Assurance Automobile CEMAC & Sénégal</span>
-                    <span className="text-emerald-400">En cours</span>
+                    <span className="text-blue-400">En cours</span>
                   </div>
                   <p className="text-[11px] text-slate-400">Date d'expiration: {selectedDriverForKyc.kyc.assuranceExpiry}</p>
                 </div>
@@ -618,7 +618,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
                   <div className="flex justify-between font-bold text-slate-200">
                     <span>5. Visite Technique & Contrôle de Sécurité</span>
-                    <span className="text-emerald-400">Approuvé</span>
+                    <span className="text-blue-400">Approuvé</span>
                   </div>
                 </div>
               </div>
@@ -640,7 +640,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onUpdateDriverKyc(selectedDriverForKyc.id, 'approved');
                   setSelectedDriverForKyc(null);
                 }}
-                className="flex-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-900/30"
+                className="flex-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-blue-900/30"
               >
                 Valider & Activer le Compte
               </button>

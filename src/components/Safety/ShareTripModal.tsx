@@ -66,7 +66,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
         {/* En-tête */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-emerald-950 border border-emerald-500/40 rounded-xl text-emerald-400">
+            <div className="p-2 bg-blue-950 border border-blue-500/40 rounded-xl text-blue-400">
               <Share2 className="w-4 h-4" />
             </div>
             <div>
@@ -82,14 +82,14 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
 
         {/* Aperçu du trajet partagé */}
         <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-          <div className="flex items-center space-x-2 text-emerald-400 font-bold">
+          <div className="flex items-center space-x-2 text-blue-400 font-bold">
             <ShieldCheck className="w-4 h-4" />
             <span>Lien de sécurité chiffré</span>
           </div>
 
           <div className="space-y-1 text-slate-300 text-[11px]">
             <p className="flex items-center space-x-1.5 truncate">
-              <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+              <MapPin className="w-3 h-3 text-blue-400 shrink-0" />
               <span>De <strong>{activeRide.pickup.quarter}</strong> à <strong>{activeRide.destination.quarter}</strong></span>
             </p>
             <p className="flex items-center space-x-1.5 truncate">
@@ -109,14 +109,14 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
               type="text"
               readOnly
               value={shareUrl}
-              className="flex-1 bg-transparent px-2 text-xs text-emerald-300 font-mono outline-none truncate"
+              className="flex-1 bg-transparent px-2 text-xs text-blue-300 font-mono outline-none truncate"
             />
             <button
               type="button"
               onClick={handleCopyLink}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold flex items-center space-x-1 transition-colors shrink-0"
             >
-              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copié !' : 'Copier'}</span>
             </button>
           </div>
@@ -128,7 +128,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
             href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/40"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/40"
           >
             <MessageCircle className="w-4 h-4" />
             <span>Partager sur WhatsApp</span>
@@ -148,7 +148,7 @@ export const ShareTripModal: React.FC<ShareTripModalProps> = ({
               onClick={handleNativeShare}
               className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 border border-slate-700"
             >
-              <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+              <Share2 className="w-3.5 h-3.5 text-blue-400" />
               <span>Autres options</span>
             </button>
           </div>

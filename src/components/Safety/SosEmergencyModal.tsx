@@ -112,12 +112,12 @@ export const SosEmergencyModal: React.FC<SosEmergencyModalProps> = ({
         <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
           <div className="flex justify-between items-center text-slate-400">
             <span>Course active : <strong>#{activeRide.id}</strong></span>
-            <span className="text-emerald-400 font-bold font-mono">{activeRide.status.toUpperCase()}</span>
+            <span className="text-blue-400 font-bold font-mono">{activeRide.status.toUpperCase()}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
             <div className="flex items-center space-x-1.5 truncate">
-              <Car className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <Car className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <span className="truncate">
                 {activeRide.driver?.vehicle.plateNumber || 'DK-7482-BC'} ({activeRide.driver?.vehicle.brand})
               </span>
@@ -153,7 +153,7 @@ export const SosEmergencyModal: React.FC<SosEmergencyModalProps> = ({
           ) : (
             <div className="p-3 bg-rose-950/80 border border-rose-500 rounded-xl text-center space-y-1">
               <div className="flex items-center justify-center space-x-2 text-rose-300 font-bold text-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 text-blue-400" />
                 <span>Alerte transmise aux équipes de sécurité !</span>
               </div>
               <p className="text-[11px] text-rose-200/90">
@@ -167,7 +167,7 @@ export const SosEmergencyModal: React.FC<SosEmergencyModalProps> = ({
             href={`https://wa.me/?text=${getEmergencyMessage()}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow"
+            className="w-full py-2.5 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow"
           >
             <MessageCircle className="w-4 h-4" />
             <span>Envoyer alerte WhatsApp à mes proches</span>
